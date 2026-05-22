@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Harmonic Overlap — Major vs Minor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; }
+
+:root {
+  --paper: #fdfcf8;
+  --ink: #1a1a1a;
+  --ink-soft: #555;
+  --ink-faint: #a8a59c;
+  --rule: #d4d0c8;
+}
+
+@page { size: letter portrait; margin: 0.45in; }
+
+html { background: #e8e4d8; }
+
+body {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  margin: 24px auto;
+  padding: 0.55in;
+  font-size: 10.5pt;
+  line-height: 1.55;
+  max-width: 8.5in;
+  min-height: 10.6in;
+  box-shadow: 0 4px 32px rgba(0,0,0,0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media print {
+  html { background: white; }
+  body {
+    margin: 0;
+    padding: 0.45in;
+    max-width: none;
+    min-height: 100vh;
+    box-shadow: none;
+  }
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
+
+.viz {
+  display: block;
+  width: 100%;
+  max-width: 7in;
+  height: auto;
+}
+
+.viz .chord-title {
+  fill: var(--ink);
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.viz .chord-sub {
+  fill: var(--ink-soft);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.viz .row-line {
+  stroke: var(--rule);
+  stroke-width: 0.5;
+}
+
+.viz .row-label {
+  fill: var(--ink-soft);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 10.5px;
+  font-weight: 500;
+}
+
+.viz .harmonic-tick.on {
+  fill: var(--ink);
+}
+
+.viz .harmonic-tick.off {
+  fill: none;
+  stroke: var(--ink-faint);
+  stroke-width: 0.9;
+}
+
+.viz .coin-line {
+  stroke: var(--ink-faint);
+  stroke-width: 0.6;
+  stroke-dasharray: 1.5 3;
+  opacity: 0.55;
+}
+
+.viz .coin-bar {
+  stroke: var(--ink);
+  stroke-width: 2.2;
+  stroke-linecap: round;
+}
+
+.viz .coin-mark {
+  fill: var(--ink);
+}
+
+.viz .coin-label {
+  fill: var(--ink);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+
+.viz .axis-label {
+  fill: var(--ink-faint);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 10px;
+}
+
+.viz .axis-pitch {
+  fill: var(--ink-soft);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.viz .axis-pitch.approx {
+  fill: var(--ink-faint);
+  font-style: italic;
+}
+
+.viz .axis-caption {
+  fill: var(--ink-soft);
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 10.5px;
+}
+</style>
+</head>
+<body>
+
+<div id="viz" style="width:100%; max-width:7in;"></div>
+
+<script>
+const FMIN = 1, FMAX = 10;
+const W = 620, H = 470;
+const plotL = 70, plotR = W - 30;
+const plotW = plotR - plotL;
+const xOf = f => plotL + (f - FMIN) / (FMAX - FMIN) * plotW;
+
+const chords = [
+  {
+    name: 'Major triad',
+    sub: '4 : 5 : 6',
+    notes: [
+      { label: 'R',  ratio: 1   },
+      { label: '3',  ratio: 5/4 },
+      { label: '5',  ratio: 3/2 }
+    ]
+  },
+  {
+    name: 'Minor triad',
+    sub: '10 : 12 : 15',
+    notes: [
+      { label: 'R',  ratio: 1   },
+      { label: '♭3', ratio: 6/5 },
+      { label: '5',  ratio: 3/2 }
+    ]
+  }
+];
+
+function harmonicsUpTo(ratio, maxFreq) {
+  const arr = [];
+  for (let n = 1; n * ratio <= maxFreq + 1e-6; n++) {
+    const f = n * ratio;
+    const onGrid = Math.abs(f - Math.round(f)) < 1e-6;
+    arr.push({ freq: f, onGrid });
+  }
+  return arr;
+}
+
+function findCoincidences(notes, maxFreq) {
+  const groups = {};
+  notes.forEach((note, idx) => {
+    harmonicsUpTo(note.ratio, maxFreq).forEach(h => {
+      const key = h.freq.toFixed(4);
+      if (!groups[key]) groups[key] = { freq: h.freq, idxSet: new Set() };
+      groups[key].idxSet.add(idx);
+    });
+  });
+  return Object.values(groups)
+    .filter(g => g.idxSet.size >= 2)
+    .sort((a, b) => a.freq - b.freq);
+}
+
+function buildBlock(yOff, chord) {
+  let svg = '';
+  const yBarBase = yOff + 78;     // baseline where coincidence bars sit
+  const yRow1   = yOff + 100;
+  const yRow2   = yOff + 130;
+  const yRow3   = yOff + 160;
+  const yAxis   = yOff + 188;
+  const yCap    = yOff + 208;
+
+  // title + ratio
+  svg += '<text class="chord-title" x="' + plotL + '" y="' + (yOff + 20) + '">' + chord.name + '</text>';
+  svg += '<text class="chord-sub" x="' + (plotL + 105) + '" y="' + (yOff + 20) + '">' + chord.sub + '</text>';
+
+  const coincidences = findCoincidences(chord.notes, FMAX);
+
+  // dashed guide lines through rows for each coincidence (subtle)
+  coincidences.forEach(c => {
+    const x = xOf(c.freq);
+    svg += '<line class="coin-line" x1="' + x + '" y1="' + yBarBase + '" x2="' + x + '" y2="' + (yRow3 + 6) + '"/>';
+  });
+
+  // coincidence bars (height ∝ count)
+  coincidences.forEach(c => {
+    const x = xOf(c.freq);
+    const count = c.idxSet.size;
+    const barH = count === 2 ? 24 : 42;
+    svg += '<line class="coin-bar" x1="' + x + '" y1="' + yBarBase + '" x2="' + x + '" y2="' + (yBarBase - barH) + '"/>';
+    if (count === 3) {
+      svg += '<text class="coin-label" x="' + x + '" y="' + (yBarBase - barH - 6) + '" text-anchor="middle">×3</text>';
+    }
+  });
+
+  // three harmonic rows
+  const rowY = [yRow1, yRow2, yRow3];
+  chord.notes.forEach((note, idx) => {
+    const y = rowY[idx];
+    svg += '<line class="row-line" x1="' + plotL + '" y1="' + y + '" x2="' + plotR + '" y2="' + y + '"/>';
+    svg += '<text class="row-label" x="' + (plotL - 12) + '" y="' + (y + 3.5) + '" text-anchor="end">' + note.label + '</text>';
+    harmonicsUpTo(note.ratio, FMAX).forEach(h => {
+      const cls = 'harmonic-tick ' + (h.onGrid ? 'on' : 'off');
+      const r = h.onGrid ? 3.5 : 2.5;
+      svg += '<circle class="' + cls + '" cx="' + xOf(h.freq) + '" cy="' + y + '" r="' + r + '"/>';
+    });
+  });
+
+  // frequency axis + pitch class beneath each integer
+  const harmonicPitch = [
+    { l:'R',  approx:false }, { l:'R',  approx:false }, { l:'5',  approx:false }, { l:'R',  approx:false },
+    { l:'3',  approx:false }, { l:'5',  approx:false }, { l:'♭7', approx:true  }, { l:'R',  approx:false },
+    { l:'2',  approx:false }, { l:'3',  approx:false }
+  ];
+  for (let f = FMIN; f <= FMAX; f++) {
+    svg += '<text class="axis-label" x="' + xOf(f) + '" y="' + yAxis + '" text-anchor="middle">' + f + '</text>';
+    const p = harmonicPitch[f - 1];
+    const cls = 'axis-pitch' + (p.approx ? ' approx' : '');
+    svg += '<text class="' + cls + '" x="' + xOf(f) + '" y="' + (yAxis + 14) + '" text-anchor="middle">' + p.l + '</text>';
+  }
+  svg += '<text class="axis-caption" x="' + (plotL + plotW / 2) + '" y="' + (yCap + 14) + '" text-anchor="middle">frequency &nbsp;×&nbsp; root  &nbsp;·&nbsp;  pitch class below</text>';
+
+  return svg;
+}
+
+function build() {
+  let svg = '<svg class="viz" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + (H + 30) + '" preserveAspectRatio="xMidYMid meet">';
+  svg += buildBlock(15,  chords[0]);
+  svg += buildBlock(255, chords[1]);
+  svg += '</svg>';
+  document.getElementById('viz').innerHTML = svg;
+}
+
+build();
+</script>
+
+</body>
+</html>

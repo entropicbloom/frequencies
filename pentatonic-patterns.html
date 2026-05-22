@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pentatonic Patterns — Intervals Reference</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; }
+
+:root {
+  --paper: #fdfcf8;
+  --ink: #1a1a1a;
+  --ink-soft: #555;
+  --ink-faint: #a8a59c;
+  --rule: #d4d0c8;
+  --accent: #8a5a00;
+}
+
+@page {
+  size: letter portrait;
+  margin: 0.45in;
+}
+
+html { background: #e8e4d8; }
+
+body {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  margin: 24px auto;
+  padding: 0.55in 0.55in 0.55in;
+  font-size: 10.5pt;
+  line-height: 1.5;
+  max-width: 8.5in;
+  min-height: 10.6in;
+  box-shadow: 0 4px 32px rgba(0,0,0,0.08);
+  display: flex;
+  flex-direction: column;
+}
+
+@media print {
+  html { background: white; }
+  body {
+    margin: 0;
+    padding: 0.45in;
+    max-width: none;
+    min-height: 100vh;
+    box-shadow: none;
+  }
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
+
+.pentagon-section {
+  flex: 1 1 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 0.26in;
+  padding-top: 0.2in;
+  border-top: 0.5px solid var(--rule);
+  min-height: 180px;
+}
+
+.pent-geometry {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+.pent-geometry .ring {
+  fill: none;
+  stroke: var(--rule);
+  stroke-width: 0.5;
+}
+
+.pent-geometry .tick {
+  fill: var(--ink-faint);
+}
+
+.pent-geometry .pent-shape {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 0.9;
+  stroke-linejoin: round;
+}
+
+.pent-geometry .pent-note {
+  fill: var(--ink);
+}
+
+.pent-geometry .label-minor {
+  fill: var(--ink);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.pent-geometry .label-major {
+  fill: var(--accent);
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-style: italic;
+  font-size: 12.5px;
+  font-weight: 500;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.22in 0.25in;
+}
+
+.diagram {
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+.diagram-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 4px;
+  padding-bottom: 5px;
+  border-bottom: 0.5px solid var(--rule);
+}
+
+.pattern-name {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-weight: 500;
+  font-size: 14pt;
+  color: var(--ink);
+}
+
+.scale-tag {
+  font-size: 8pt;
+  color: var(--ink-soft);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  font-weight: 500;
+}
+
+.diagram-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 9pt;
+  color: var(--ink-soft);
+  margin-top: 2px;
+  font-style: italic;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+}
+
+.diagram-meta .key {
+  color: var(--ink);
+  font-weight: 500;
+  font-style: normal;
+  font-family: 'DM Sans', sans-serif;
+  letter-spacing: 0.04em;
+}
+
+.fretboard {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.fretboard .string-line,
+.fretboard .fret-line {
+  stroke: #888;
+  stroke-width: 0.6;
+  opacity: 0.55;
+  fill: none;
+}
+
+.fretboard .marker-dot {
+  fill: #c8c4b8;
+}
+
+.fretboard .axis-label {
+  fill: var(--ink-soft);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 10.5px;
+  font-weight: 400;
+}
+
+.fretboard .note-circle {
+  fill: var(--paper);
+  stroke: var(--ink);
+  stroke-width: 1.2;
+}
+
+.fretboard .note-circle.root {
+  fill: var(--ink);
+}
+
+.fretboard .note-label {
+  fill: var(--ink);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.fretboard .note-label.root {
+  fill: var(--paper);
+}
+
+footer {
+  margin-top: 0.26in;
+  padding-top: 0.16in;
+  border-top: 0.5px solid var(--rule);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.3in;
+  font-size: 9.5pt;
+  color: var(--ink-soft);
+  align-items: start;
+}
+
+.footer-section h3 {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: 11pt;
+  margin: 0 0 6px;
+  color: var(--ink);
+}
+
+.legend-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 3px 0;
+  font-size: 9pt;
+}
+
+.legend-dot {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 1.2px solid var(--ink);
+  background: var(--paper);
+  flex-shrink: 0;
+}
+
+.legend-dot.filled { background: var(--ink); }
+
+.interval-list {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 10pt;
+  letter-spacing: 0.05em;
+  color: var(--ink);
+}
+
+.interval-list .sep {
+  color: var(--ink-faint);
+  margin: 0 5px;
+}
+
+.note-names {
+  margin-top: 4px;
+  font-size: 8.5pt;
+  color: var(--ink-soft);
+  font-style: italic;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+}
+
+.signature {
+  margin-top: 0.18in;
+  text-align: center;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-style: italic;
+  font-size: 9pt;
+  color: var(--ink-faint);
+  letter-spacing: 0.04em;
+}
+</style>
+</head>
+<body>
+
+<main class="grid">
+  <div class="diagram" id="d1"></div>
+  <div class="diagram" id="d2"></div>
+  <div class="diagram" id="d4"></div>
+  <div class="diagram" id="d5"></div>
+</main>
+
+<footer>
+  <div class="footer-section">
+    <h3>Minor pentatonic</h3>
+    <div class="interval-list">R<span class="sep">·</span>♭3<span class="sep">·</span>4<span class="sep">·</span>5<span class="sep">·</span>♭7</div>
+  </div>
+  <div class="footer-section">
+    <h3>Major pentatonic</h3>
+    <div class="interval-list">R<span class="sep">·</span>2<span class="sep">·</span>3<span class="sep">·</span>5<span class="sep">·</span>6</div>
+  </div>
+</footer>
+
+<section class="pentagon-section">
+  <svg class="pent-geometry" viewBox="0 0 200 200" role="img" aria-label="Pentatonic scale geometry — five notes on the chromatic twelve, with minor intervals outside and major intervals inside">
+    <circle cx="100" cy="100" r="70" class="ring"/>
+    <circle cx="135" cy="39.4" r="1.6" class="tick"/>
+    <circle cx="160.6" cy="65" r="1.6" class="tick"/>
+    <circle cx="160.6" cy="135" r="1.6" class="tick"/>
+    <circle cx="100" cy="170" r="1.6" class="tick"/>
+    <circle cx="39.4" cy="135" r="1.6" class="tick"/>
+    <circle cx="30" cy="100" r="1.6" class="tick"/>
+    <circle cx="65" cy="39.4" r="1.6" class="tick"/>
+    <polygon points="100,30 170,100 135,160.6 65,160.6 39.4,65" class="pent-shape"/>
+    <circle cx="100" cy="30" r="4.5" class="pent-note"/>
+    <circle cx="170" cy="100" r="4.5" class="pent-note"/>
+    <circle cx="135" cy="160.6" r="4.5" class="pent-note"/>
+    <circle cx="65" cy="160.6" r="4.5" class="pent-note"/>
+    <circle cx="39.4" cy="65" r="4.5" class="pent-note"/>
+    <text class="label-minor" x="100" y="12" text-anchor="middle" dominant-baseline="central">R</text>
+    <text class="label-minor" x="188" y="100" text-anchor="middle" dominant-baseline="central">♭3</text>
+    <text class="label-minor" x="144" y="176.2" text-anchor="middle" dominant-baseline="central">4</text>
+    <text class="label-minor" x="56" y="176.2" text-anchor="middle" dominant-baseline="central">5</text>
+    <text class="label-minor" x="22" y="56" text-anchor="middle" dominant-baseline="central">♭7</text>
+    <text class="label-major" x="100" y="56" text-anchor="middle" dominant-baseline="central">6</text>
+    <text class="label-major" x="144" y="100" text-anchor="middle" dominant-baseline="central">R</text>
+    <text class="label-major" x="122" y="138.1" text-anchor="middle" dominant-baseline="central">2</text>
+    <text class="label-major" x="78" y="138.1" text-anchor="middle" dominant-baseline="central">3</text>
+    <text class="label-major" x="61.9" y="78" text-anchor="middle" dominant-baseline="central">5</text>
+  </svg>
+</section>
+
+<script>
+const diagrams = [
+  {
+    target: 'd1',
+    pattern: 'Pattern 1', scale: 'Minor pentatonic',
+    fretRange: 'Frets 5 – 8', root: 'A',
+    frets: [5,6,7,8],
+    notes: [
+      {s:6,c:0,l:'R',root:true},{s:6,c:3,l:'♭3',root:false},
+      {s:5,c:0,l:'4',root:false},{s:5,c:2,l:'5',root:false},
+      {s:4,c:0,l:'♭7',root:false},{s:4,c:2,l:'R',root:true},
+      {s:3,c:0,l:'♭3',root:false},{s:3,c:2,l:'4',root:false},
+      {s:2,c:0,l:'5',root:false},{s:2,c:3,l:'♭7',root:false},
+      {s:1,c:0,l:'R',root:true},{s:1,c:3,l:'♭3',root:false}
+    ]
+  },
+  {
+    target: 'd2',
+    pattern: 'Pattern 1', scale: 'Major pentatonic',
+    fretRange: 'Frets 5 – 8', root: 'C',
+    frets: [5,6,7,8],
+    notes: [
+      {s:6,c:0,l:'6',root:false},{s:6,c:3,l:'R',root:true},
+      {s:5,c:0,l:'2',root:false},{s:5,c:2,l:'3',root:false},
+      {s:4,c:0,l:'5',root:false},{s:4,c:2,l:'6',root:false},
+      {s:3,c:0,l:'R',root:true},{s:3,c:2,l:'2',root:false},
+      {s:2,c:0,l:'3',root:false},{s:2,c:3,l:'5',root:false},
+      {s:1,c:0,l:'6',root:false},{s:1,c:3,l:'R',root:true}
+    ]
+  },
+  {
+    target: 'd4',
+    pattern: 'Pattern 2', scale: 'Major pentatonic',
+    fretRange: 'Frets 7 – 10', root: 'C',
+    frets: [7,8,9,10],
+    notes: [
+      {s:6,c:1,l:'R',root:true},{s:6,c:3,l:'2',root:false},
+      {s:5,c:0,l:'3',root:false},{s:5,c:3,l:'5',root:false},
+      {s:4,c:0,l:'6',root:false},{s:4,c:3,l:'R',root:true},
+      {s:3,c:0,l:'2',root:false},{s:3,c:2,l:'3',root:false},
+      {s:2,c:1,l:'5',root:false},{s:2,c:3,l:'6',root:false},
+      {s:1,c:1,l:'R',root:true},{s:1,c:3,l:'2',root:false}
+    ]
+  },
+  {
+    target: 'd5',
+    pattern: 'Pattern 5', scale: 'Minor pentatonic',
+    fretRange: 'Frets 2 – 5', root: 'A',
+    frets: [2,3,4,5],
+    notes: [
+      {s:6,c:1,l:'♭7',root:false},{s:6,c:3,l:'R',root:true},
+      {s:5,c:1,l:'♭3',root:false},{s:5,c:3,l:'4',root:false},
+      {s:4,c:0,l:'5',root:false},{s:4,c:3,l:'♭7',root:false},
+      {s:3,c:0,l:'R',root:true},{s:3,c:3,l:'♭3',root:false},
+      {s:2,c:1,l:'4',root:false},{s:2,c:3,l:'5',root:false},
+      {s:1,c:1,l:'♭7',root:false},{s:1,c:3,l:'R',root:true}
+    ]
+  }
+];
+
+const stringNames = {6:'E',5:'A',4:'D',3:'G',2:'B',1:'e'};
+
+function renderDiagram(d) {
+  const left = 35, right = 275, top = 28, gap = 26;
+  const fw = (right - left) / 4;
+  const cx = i => left + fw * (i + 0.5);
+  const sy = s => top + (s - 1) * gap;
+
+  let svg = `<svg class="fretboard" viewBox="0 0 300 175" role="img" aria-label="${d.pattern} ${d.scale}">`;
+
+  for (let s = 1; s <= 6; s++) {
+    svg += `<line class="string-line" x1="${left}" y1="${sy(s)}" x2="${right}" y2="${sy(s)}"/>`;
+  }
+  for (let f = 0; f <= 4; f++) {
+    svg += `<line class="fret-line" x1="${left + f*fw}" y1="${sy(6)}" x2="${left + f*fw}" y2="${sy(1)}"/>`;
+  }
+
+  const my = (sy(3) + sy(4)) / 2;
+  d.frets.forEach((fn, i) => {
+    if ([3,5,7,9].includes(fn)) {
+      svg += `<circle class="marker-dot" cx="${cx(i)}" cy="${my}" r="3"/>`;
+    }
+  });
+
+  for (let s = 1; s <= 6; s++) {
+    svg += `<text class="axis-label" x="20" y="${sy(s)+3.5}" text-anchor="middle">${stringNames[s]}</text>`;
+  }
+
+  d.notes.forEach(n => {
+    const x = cx(n.c), y = sy(n.s);
+    const rc = n.root ? ' root' : '';
+    svg += `<g class="note"><circle class="note-circle${rc}" cx="${x}" cy="${y}" r="11"/><text class="note-label${rc}" x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central">${n.l}</text></g>`;
+  });
+
+  svg += `</svg>`;
+
+  document.getElementById(d.target).innerHTML = `
+    <div class="diagram-top">
+      <span class="pattern-name">${d.pattern}</span>
+      <span class="scale-tag">${d.scale}</span>
+    </div>
+    ${svg}
+  `;
+}
+
+diagrams.forEach(renderDiagram);
+</script>
+
+</body>
+</html>

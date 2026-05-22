@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scale Circles — Blank</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; }
+
+:root {
+  --paper: #fdfcf8;
+  --ink: #1a1a1a;
+  --ink-soft: #555;
+  --ink-faint: #a8a59c;
+  --rule: #d4d0c8;
+}
+
+@page { size: letter portrait; margin: 0.45in; }
+
+html { background: #e8e4d8; }
+
+body {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  margin: 24px auto;
+  padding: 0.55in;
+  font-size: 10.5pt;
+  line-height: 1.5;
+  max-width: 8.5in;
+  min-height: 10.6in;
+  box-shadow: 0 4px 32px rgba(0,0,0,0.08);
+}
+
+@media print {
+  html { background: white; }
+  body {
+    margin: 0;
+    padding: 0.45in;
+    max-width: none;
+    min-height: 100vh;
+    box-shadow: none;
+  }
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
+
+main {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  column-gap: 0.4in;
+  row-gap: 0.4in;
+}
+
+.cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  page-break-inside: avoid;
+  break-inside: avoid;
+}
+
+.cell h2 {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: 14pt;
+  color: var(--ink);
+  margin: 0 0 0.08in;
+  letter-spacing: 0.02em;
+}
+
+.circle-svg {
+  width: 100%;
+  max-width: 2.8in;
+  height: auto;
+  display: block;
+}
+
+.circle-svg .ring {
+  fill: none;
+  stroke: var(--rule);
+  stroke-width: 0.5;
+}
+
+.circle-svg .tick {
+  fill: var(--ink-faint);
+}
+
+.circle-svg .shape {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 0.9;
+  stroke-linejoin: round;
+}
+
+.circle-svg .node {
+  fill: var(--paper);
+  stroke: var(--ink);
+  stroke-width: 1.1;
+}
+
+.circle-svg .node.root {
+  fill: var(--ink);
+}
+</style>
+</head>
+<body>
+
+<main id="grid"></main>
+
+<script>
+const scales = [
+  { name:'Minor chord',      positions:[0,3,7] },
+  { name:'Major chord',      positions:[0,4,7] },
+  { name:'Minor pentatonic', positions:[0,3,5,7,10] },
+  { name:'Major pentatonic', positions:[0,2,4,7,9] },
+  { name:'Natural minor',    positions:[0,2,3,5,7,8,10] },
+  { name:'Major',            positions:[0,2,4,5,7,9,11] }
+];
+
+const cx = 100, cy = 100, R = 70;
+const angleFor = p => (-90 + p * 30) * Math.PI / 180;
+const pointAt = (p, r) => [cx + r * Math.cos(angleFor(p)), cy + r * Math.sin(angleFor(p))];
+
+function buildSvg(scale) {
+  let svg = '<svg class="circle-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" preserveAspectRatio="xMidYMid meet">';
+
+  svg += `<circle class="ring" cx="${cx}" cy="${cy}" r="${R}"/>`;
+
+  for (let p = 0; p < 12; p++) {
+    if (!scale.positions.includes(p)) {
+      const [x, y] = pointAt(p, R);
+      svg += `<circle class="tick" cx="${x.toFixed(2)}" cy="${y.toFixed(2)}" r="1.6"/>`;
+    }
+  }
+
+  const pts = scale.positions.map(p => {
+    const [x, y] = pointAt(p, R);
+    return `${x.toFixed(2)},${y.toFixed(2)}`;
+  }).join(' ');
+  svg += `<polygon class="shape" points="${pts}"/>`;
+
+  scale.positions.forEach((p, i) => {
+    const [x, y] = pointAt(p, R);
+    const cls = i === 0 ? 'node root' : 'node';
+    svg += `<circle class="${cls}" cx="${x.toFixed(2)}" cy="${y.toFixed(2)}" r="4.8"/>`;
+  });
+
+  svg += '</svg>';
+  return svg;
+}
+
+const grid = document.getElementById('grid');
+scales.forEach(s => {
+  const cell = document.createElement('div');
+  cell.className = 'cell';
+  cell.innerHTML = `<h2>${s.name}</h2>${buildSvg(s)}`;
+  grid.appendChild(cell);
+});
+</script>
+
+</body>
+</html>

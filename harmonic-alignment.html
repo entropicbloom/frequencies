@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Major vs Minor — Harmonic Alignment</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; }
+
+:root {
+  --paper: #fdfcf8;
+  --ink: #1a1a1a;
+  --ink-soft: #555;
+  --ink-faint: #a8a59c;
+  --rule: #d4d0c8;
+}
+
+@page { size: letter landscape; margin: 0.4in; }
+
+html { background: #e8e4d8; }
+
+body {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  margin: 24px auto;
+  padding: 0.45in;
+  font-size: 10.5pt;
+  line-height: 1.55;
+  max-width: 11in;
+  min-height: 8.1in;
+  box-shadow: 0 4px 32px rgba(0,0,0,0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media print {
+  html { background: white; }
+  body {
+    margin: 0;
+    padding: 0.4in;
+    max-width: none;
+    min-height: 100vh;
+    box-shadow: none;
+  }
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
+
+.viz {
+  display: block;
+  width: 100%;
+  max-width: 10in;
+  height: auto;
+}
+
+.viz .h-line { stroke: var(--rule); stroke-width: 0.5; }
+
+.viz .divider {
+  stroke: var(--rule);
+  stroke-width: 0.5;
+  stroke-dasharray: 3 3;
+}
+
+.viz .h-num {
+  fill: var(--ink-faint);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 10px;
+  font-weight: 400;
+}
+
+.viz .h-interval {
+  fill: var(--ink-soft);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.viz .h-interval.approx {
+  fill: var(--ink-faint);
+  font-style: italic;
+}
+
+.viz .col-header {
+  fill: var(--ink);
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.viz .col-sub {
+  fill: var(--ink-soft);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 9.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.viz .chord-stem {
+  stroke: var(--ink);
+  stroke-width: 1;
+}
+
+.viz .ghost {
+  fill: none;
+  stroke: var(--ink-faint);
+  stroke-width: 0.8;
+  stroke-dasharray: 2 2;
+}
+
+.viz .node {
+  fill: var(--ink);
+  stroke: var(--ink);
+  stroke-width: 1;
+}
+</style>
+</head>
+<body>
+
+<div id="viz" style="width:100%; max-width:10in;"></div>
+
+<script>
+const N = 16;
+const yTop = 70, yBottom = 580;
+const span = yBottom - yTop;
+
+const yLinear = h => yBottom - (h - 1) / (N - 1) * span;
+const yLog    = h => yBottom - Math.log2(h) / Math.log2(N) * span;
+
+// pitch-class interval each harmonic represents above the fundamental
+const intervals = [
+  { l:'R',  approx:false }, { l:'R',  approx:false }, { l:'5',  approx:false }, { l:'R',  approx:false },
+  { l:'3',  approx:false }, { l:'5',  approx:false }, { l:'♭7', approx:true  }, { l:'R',  approx:false },
+  { l:'2',  approx:false }, { l:'3',  approx:false }, { l:'♯4', approx:true  }, { l:'5',  approx:false },
+  { l:'♭6', approx:true  }, { l:'♭7', approx:true  }, { l:'7',  approx:false }, { l:'R',  approx:false }
+];
+
+function buildLadder(xOff, title, subtitle, yFn) {
+  const numX  = xOff + 40;
+  const ivX   = xOff + 72;
+  const lineL = xOff + 105;
+  const lineR = xOff + 335;
+  const majX  = xOff + 170;
+  const minX  = xOff + 280;
+  const headX = xOff + 175;
+
+  let svg = '';
+
+  // header
+  svg += '<text class="col-header" x="' + headX + '" y="30" text-anchor="middle">' + title + '</text>';
+  svg += '<text class="col-sub" x="' + headX + '" y="48" text-anchor="middle">' + subtitle + '</text>';
+
+  // ladder + labels
+  for (let h = 1; h <= N; h++) {
+    const yh = yFn(h);
+    svg += '<line class="h-line" x1="' + lineL + '" y1="' + yh + '" x2="' + lineR + '" y2="' + yh + '"/>';
+    svg += '<text class="h-num" x="' + numX + '" y="' + (yh + 3.5) + '" text-anchor="end">' + h + '</text>';
+    const iv = intervals[h - 1];
+    const cls = 'h-interval' + (iv.approx ? ' approx' : '');
+    svg += '<text class="' + cls + '" x="' + ivX + '" y="' + (yh + 3.5) + '" text-anchor="middle">' + iv.l + '</text>';
+  }
+
+  // major chord — harmonics 4, 5, 6
+  const majH = [4, 5, 6];
+  svg += '<line class="chord-stem" x1="' + majX + '" y1="' + yFn(majH[majH.length - 1]) + '" x2="' + majX + '" y2="' + yFn(majH[0]) + '"/>';
+  majH.forEach(h => {
+    svg += '<circle class="node" cx="' + majX + '" cy="' + yFn(h) + '" r="8"/>';
+  });
+
+  // minor chord — harmonics 10, 12, 15
+  const minH = [10, 12, 15];
+  const minSkipped = [11, 13, 14];
+  svg += '<line class="chord-stem" x1="' + minX + '" y1="' + yFn(minH[minH.length - 1]) + '" x2="' + minX + '" y2="' + yFn(minH[0]) + '"/>';
+  minSkipped.forEach(h => {
+    svg += '<circle class="ghost" cx="' + minX + '" cy="' + yFn(h) + '" r="6"/>';
+  });
+  minH.forEach(h => {
+    svg += '<circle class="node" cx="' + minX + '" cy="' + yFn(h) + '" r="8"/>';
+  });
+
+  return svg;
+}
+
+function build() {
+  let svg = '<svg class="viz" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 740 620" preserveAspectRatio="xMidYMid meet">';
+  svg += buildLadder(0,   'Frequency', 'linear · ∆f',     yLinear);
+  svg += '<line class="divider" x1="370" y1="60" x2="370" y2="600"/>';
+  svg += buildLadder(370, 'Pitch',     'logarithmic · ∆oct', yLog);
+  svg += '</svg>';
+  document.getElementById('viz').innerHTML = svg;
+}
+
+build();
+</script>
+
+</body>
+</html>
