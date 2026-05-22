@@ -1,4 +1,6 @@
-# frequencies
+# Musical geometries
+
+*2026-05-22*
 
 An exploration of geometric and structural representations of musical intervals, chords, and scales — and the question of whether any such structure can capture the felt difference between major and minor.
 
