@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pitch circle — major vs minor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; }
+
+:root {
+  --paper: #fdfcf8;
+  --ink: #1a1a1a;
+  --ink-soft: #555;
+  --ink-faint: #a8a59c;
+  --rule: #d4d0c8;
+  --accent: #8a5a00;
+  --voice-root: #1a1a1a;
+  --voice-third: #8a5a00;
+  --voice-fifth: #2d5d7a;
+}
+
+@page { size: letter portrait; margin: 0.45in; }
+
+html { background: #e8e4d8; }
+
+body {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  margin: 24px auto;
+  padding: 0.6in;
+  font-size: 10.5pt;
+  line-height: 1.5;
+  max-width: 8.5in;
+  min-height: 10.6in;
+  box-shadow: 0 4px 32px rgba(0,0,0,0.08);
+}
+
+@media print {
+  html { background: white; }
+  body {
+    margin: 0;
+    padding: 0.45in;
+    max-width: none;
+    min-height: 100vh;
+    box-shadow: none;
+  }
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}
+
+h1 {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: 20pt;
+  margin: 0 0 0.05in;
+  letter-spacing: 0.01em;
+}
+
+.subtitle {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 10pt;
+  color: var(--ink-soft);
+  margin-bottom: 0.3in;
+  letter-spacing: 0.03em;
+}
+
+.viz-wrap {
+  display: flex;
+  justify-content: center;
+  margin: 0.15in 0 0.25in;
+}
+
+svg.circles {
+  width: 100%;
+  max-width: 7.2in;
+  height: auto;
+}
+
+svg.circles .octave-ring {
+  fill: none;
+  stroke: var(--ink-faint);
+  stroke-width: 0.8;
+}
+
+svg.circles .grid-tick {
+  stroke: var(--rule);
+  stroke-width: 0.5;
+}
+
+svg.circles .grid-label {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 7pt;
+  fill: var(--ink-faint);
+  letter-spacing: 0.04em;
+}
+
+svg.circles .chord-name {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-style: italic;
+  font-size: 13pt;
+  fill: var(--ink);
+}
+
+svg.circles .chord-ratio {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 9pt;
+  fill: var(--ink-soft);
+  letter-spacing: 0.04em;
+}
+
+svg.circles .partial-tick {
+  stroke-linecap: round;
+}
+
+svg.circles .voice-label {
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 600;
+  font-size: 8.5pt;
+  letter-spacing: 0.02em;
+}
+
+svg.circles .coincidence-wedge {
+  stroke: #b8862a;
+  stroke-linecap: butt;
+  opacity: 0.22;
+}
+
+svg.circles .coincidence-count {
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 600;
+  font-size: 7.5pt;
+  fill: var(--accent);
+  letter-spacing: 0.02em;
+}
+
+.legend {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.2in 0.4in;
+  font-size: 10pt;
+  color: var(--ink-soft);
+  margin-top: 0.2in;
+  border-top: 1px solid var(--rule);
+  padding-top: 0.2in;
+}
+
+.legend strong {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.legend p { margin: 0; }
+
+.swatch {
+  display: inline-block;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  vertical-align: -1px;
+  margin-right: 4px;
+}
+
+</style>
+</head>
+<body>
+
+<h1>The pitch circle <span style="font-style:normal;color:var(--ink-soft);font-size:14pt">— overtones, wrapped at the octave</span></h1>
+<div class="subtitle">log(frequency) mod log(2). One revolution = one octave. Each chord tone draws an inward comb — one tick per partial.</div>
+
+<div class="viz-wrap">
+<svg class="circles" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 460" preserveAspectRatio="xMidYMid meet"></svg>
+</div>
+
+<div class="legend">
+<p><strong>Reading the circle.</strong> Each tick is one partial of one chord tone. Tick <em>length</em> and <em>opacity</em> shrink with partial number (lower = louder = more perceptually salient). The warm radial bands behind the ticks mark every angle where two or more voices share a partial; their <em>width</em> grows with the strength of the lock-in (lower partial numbers = louder coincidence = wider band). Bands tagged <strong>×3</strong> are triple coincidences where all three voices line up.</p>
+<p><strong>The colours.</strong> <span class="swatch" style="background:var(--voice-root)"></span>root, <span class="swatch" style="background:var(--voice-third)"></span>third (M3 or m3), <span class="swatch" style="background:var(--voice-fifth)"></span>fifth. The 12 grey reference ticks around the outside mark equal-tempered semitone positions, labelled with interval names.</p>
+<p><strong>What to notice in major (4 : 5 : 6).</strong> All three colours converge densely near R, M3, P5, and M7. The lowest shared partial between root and fifth is the 3rd (loud); between root and third is the 5th. Everything locks in early.</p>
+<p><strong>What to notice in minor (10 : 12 : 15).</strong> The m3's fundamental (~94°) is isolated — no other voice's low partials reach it. The first triple-coincidence (all three colours at one angle) is up at the 6th partial of the m3, vs. the 3rd for major. The chord still locks, but higher up where the partials are quieter.</p>
+</div>
+
+<script>
+const SVG_NS = 'http://www.w3.org/2000/svg';
+const svg = document.querySelector('svg.circles');
+
+const PARTIALS = 16;
+
+// 12 reference labels at ET semitone positions
+const ET_LABELS = ['R','m2','M2','m3','M3','P4','A4','P5','m6','M6','m7','M7'];
+
+const chords = [
+  {
+    name: 'Major triad',
+    ratio: '4 : 5 : 6',
+    cx: 200, cy: 220,
+    voices: [
+      { label: 'R',   ratio: 1,   color: 'var(--voice-root)' },
+      { label: 'M3',  ratio: 5/4, color: 'var(--voice-third)' },
+      { label: 'P5',  ratio: 3/2, color: 'var(--voice-fifth)' }
+    ]
+  },
+  {
+    name: 'Minor triad',
+    ratio: '10 : 12 : 15',
+    cx: 520, cy: 220,
+    voices: [
+      { label: 'R',   ratio: 1,   color: 'var(--voice-root)' },
+      { label: 'm3',  ratio: 6/5, color: 'var(--voice-third)' },
+      { label: 'P5',  ratio: 3/2, color: 'var(--voice-fifth)' }
+    ]
+  }
+];
+
+const R_OUTER = 145;   // outer octave ring
+const R_INNER_BASE = 30; // shortest tick reaches inward to ~115
+const TICK_MAX = 60;   // longest tick (fundamental) reaches inward by this much
+
+function el(tag, attrs, text) {
+  const e = document.createElementNS(SVG_NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (text != null) e.textContent = text;
+  return e;
+}
+
+// position on circle: angle in radians, distance from centre = r
+function pt(cx, cy, angleRad, r) {
+  return [cx + Math.sin(angleRad) * r, cy - Math.cos(angleRad) * r];
+}
+
+function angleOf(ratio) {
+  // log2(ratio) mod 1, scaled to radians [0, 2π).  0 = R at top.
+  const frac = ((Math.log2(ratio) % 1) + 1) % 1;
+  return frac * Math.PI * 2;
+}
+
+function findCoincidences(voices, maxPartials) {
+  // group partials by (rounded) angular position; keep the lowest partial number per voice at each angle.
+  const groups = new Map();
+  voices.forEach((v, vIdx) => {
+    for (let n = 1; n <= maxPartials; n++) {
+      const r = v.ratio * n;
+      const frac = ((Math.log2(r) % 1) + 1) % 1;
+      const key = frac.toFixed(5);
+      if (!groups.has(key)) groups.set(key, { angle: frac * Math.PI * 2, voices: {} });
+      const g = groups.get(key);
+      if (!(vIdx in g.voices) || g.voices[vIdx] > n) g.voices[vIdx] = n;
+    }
+  });
+  return [...groups.values()]
+    .filter(g => Object.keys(g.voices).length >= 2)
+    .map(g => {
+      const partials = Object.values(g.voices);
+      const weight = partials.reduce((s, n) => s + 1 / Math.sqrt(n), 0);
+      return { angle: g.angle, weight, count: partials.length };
+    })
+    .filter(c => c.weight > 0.5);
+}
+
+function drawChord(chord) {
+  const g = el('g', {});
+
+  // chord name + ratio
+  g.appendChild(el('text', {
+    class: 'chord-name',
+    x: chord.cx,
+    y: chord.cy - R_OUTER - 32,
+    'text-anchor': 'middle'
+  }, chord.name));
+  g.appendChild(el('text', {
+    class: 'chord-ratio',
+    x: chord.cx,
+    y: chord.cy - R_OUTER - 16,
+    'text-anchor': 'middle'
+  }, chord.ratio));
+
+  // octave ring
+  g.appendChild(el('circle', {
+    class: 'octave-ring',
+    cx: chord.cx, cy: chord.cy, r: R_OUTER
+  }));
+
+  // 12 ET reference ticks + labels (outside the ring)
+  for (let i = 0; i < 12; i++) {
+    const a = (i / 12) * Math.PI * 2;
+    const [x1, y1] = pt(chord.cx, chord.cy, a, R_OUTER);
+    const [x2, y2] = pt(chord.cx, chord.cy, a, R_OUTER + 5);
+    g.appendChild(el('line', { class: 'grid-tick', x1, y1, x2, y2 }));
+    const [lx, ly] = pt(chord.cx, chord.cy, a, R_OUTER + 17);
+    g.appendChild(el('text', {
+      class: 'grid-label',
+      x: lx, y: ly + 2.5,
+      'text-anchor': 'middle'
+    }, ET_LABELS[i]));
+  }
+
+  // coincidence wedges (behind everything) — soft radial highlights at angles where 2+ voices share a partial.
+  const coincs = findCoincidences(chord.voices, PARTIALS);
+  coincs.forEach(c => {
+    const width = Math.min(14, Math.max(3.5, c.weight * 5));
+    const [x1, y1] = pt(chord.cx, chord.cy, c.angle, 14);
+    const [x2, y2] = pt(chord.cx, chord.cy, c.angle, R_OUTER + 4);
+    g.appendChild(el('line', {
+      class: 'coincidence-wedge',
+      x1, y1, x2, y2,
+      'stroke-width': width
+    }));
+    if (c.count === 3) {
+      const [lx, ly] = pt(chord.cx, chord.cy, c.angle, 28);
+      g.appendChild(el('text', {
+        class: 'coincidence-count',
+        x: lx, y: ly + 3,
+        'text-anchor': 'middle'
+      }, '×3'));
+    }
+  });
+
+  // partial ticks per voice
+  chord.voices.forEach(voice => {
+    for (let n = 1; n <= PARTIALS; n++) {
+      const r = voice.ratio * n;
+      const a = angleOf(r);
+      const len = TICK_MAX / Math.sqrt(n);
+      const opacity = Math.max(0.18, 1 / Math.sqrt(n));
+      const width = Math.max(1.1, 2.4 / Math.pow(n, 0.25));
+      const [x1, y1] = pt(chord.cx, chord.cy, a, R_OUTER - 2);
+      const [x2, y2] = pt(chord.cx, chord.cy, a, R_OUTER - 2 - len);
+      g.appendChild(el('line', {
+        class: 'partial-tick',
+        x1, y1, x2, y2,
+        stroke: voice.color,
+        'stroke-width': width,
+        opacity
+      }));
+    }
+  });
+
+  // label each voice's fundamental at the tip of its longest tick
+  chord.voices.forEach(voice => {
+    const a = angleOf(voice.ratio);
+    const [lx, ly] = pt(chord.cx, chord.cy, a, R_OUTER - 2 - TICK_MAX - 9);
+    g.appendChild(el('text', {
+      class: 'voice-label',
+      x: lx, y: ly + 3,
+      'text-anchor': 'middle',
+      fill: voice.color
+    }, voice.label));
+  });
+
+  return g;
+}
+
+chords.forEach(c => svg.appendChild(drawChord(c)));
+</script>
+
+</body>
+</html>
