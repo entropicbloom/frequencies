@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pitch circle — major vs minor</title>
+<title>Pitch circle — rotations &amp; stacks</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -22,8 +22,6 @@
   --voice-fifth: #2d5d7a;
 }
 
-@page { size: letter portrait; margin: 0.45in; }
-
 html { background: #e8e4d8; }
 
 body {
@@ -31,195 +29,334 @@ body {
   background: var(--paper);
   color: var(--ink);
   margin: 24px auto;
-  padding: 0.6in;
-  font-size: 10.5pt;
-  line-height: 1.5;
-  max-width: 8.5in;
-  min-height: 10.6in;
+  padding: 32px 40px;
+  font-size: 11pt;
+  line-height: 1.45;
+  max-width: 1400px;
   box-shadow: 0 4px 32px rgba(0,0,0,0.08);
-}
-
-@media print {
-  html { background: white; }
-  body {
-    margin: 0;
-    padding: 0.45in;
-    max-width: none;
-    min-height: 100vh;
-    box-shadow: none;
-  }
-  * {
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
 }
 
 h1 {
   font-family: 'Cormorant Garamond', Georgia, serif;
   font-style: italic;
   font-weight: 500;
-  font-size: 20pt;
-  margin: 0 0 0.05in;
+  font-size: 22pt;
+  margin: 0 0 22px;
   letter-spacing: 0.01em;
 }
 
-.subtitle {
-  font-family: 'DM Sans', sans-serif;
-  font-size: 10pt;
+h1 .sub {
+  font-style: normal;
   color: var(--ink-soft);
-  margin-bottom: 0.3in;
-  letter-spacing: 0.03em;
+  font-size: 14pt;
+  margin-left: 4px;
 }
 
-.viz-wrap {
+.wheels {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px;
+  align-items: start;
+}
+
+.wheel-pane {
   display: flex;
-  justify-content: center;
-  margin: 0.15in 0 0.25in;
+  flex-direction: column;
+  align-items: center;
 }
 
-svg.circles {
+.wheel-title {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-style: italic;
+  font-size: 15pt;
+  color: var(--ink);
+  margin: 0 0 6px;
+  letter-spacing: 0.01em;
+}
+
+svg.wheel {
   width: 100%;
-  max-width: 7.2in;
+  max-width: 480px;
   height: auto;
+  display: block;
 }
 
-svg.circles .octave-ring {
+svg.wheel .octave-ring {
   fill: none;
   stroke: var(--ink-faint);
-  stroke-width: 0.8;
+  stroke-width: 1;
 }
 
-svg.circles .grid-tick {
+svg.wheel .grid-tick {
   stroke: var(--rule);
-  stroke-width: 0.5;
+  stroke-width: 0.7;
 }
 
-svg.circles .grid-label {
+svg.wheel .grid-label {
   font-family: 'DM Sans', sans-serif;
-  font-size: 7pt;
+  font-size: 9pt;
   fill: var(--ink-faint);
   letter-spacing: 0.04em;
 }
 
-svg.circles .chord-name {
-  font-family: 'Cormorant Garamond', Georgia, serif;
-  font-style: italic;
-  font-size: 13pt;
-  fill: var(--ink);
-}
-
-svg.circles .chord-ratio {
-  font-family: 'DM Sans', sans-serif;
-  font-size: 9pt;
-  fill: var(--ink-soft);
-  letter-spacing: 0.04em;
-}
-
-svg.circles .partial-tick {
-  stroke-linecap: round;
-}
-
-svg.circles .voice-label {
+svg.wheel .voice-label {
   font-family: 'DM Sans', sans-serif;
   font-weight: 600;
-  font-size: 8.5pt;
+  font-size: 11pt;
   letter-spacing: 0.02em;
 }
 
-svg.circles .coincidence-wedge {
-  stroke: #b8862a;
-  stroke-linecap: butt;
-  opacity: 0.22;
+svg.wheel .density-fill {
+  stroke: none;
 }
 
-svg.circles .coincidence-count {
+.controls-row {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.layers-panel {
+  margin-top: 12px;
+  width: 100%;
+  max-width: 320px;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  background: var(--paper);
+  overflow: hidden;
+}
+
+.layer-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--rule);
+  cursor: pointer;
+  user-select: none;
+  transition: background 120ms, opacity 180ms;
+}
+
+.layer-row:last-child { border-bottom: none; }
+.layer-row:hover { background: rgba(0,0,0,0.025); }
+.layer-row.off { opacity: 0.4; }
+.layer-row.dragging { opacity: 0.5; }
+.layer-row.drag-over { background: rgba(0,0,0,0.08); }
+
+.layer-handle {
+  color: var(--ink-faint);
+  font-size: 12pt;
+  line-height: 1;
+  letter-spacing: -2px;
+  cursor: grab;
+  padding: 0 2px;
+}
+.layer-row.dragging .layer-handle { cursor: grabbing; }
+
+.layer-swatch {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--swatch-color, var(--ink-faint));
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 180ms;
+}
+.layer-swatch.neutral { background: var(--voice-root); }
+
+.layer-row[data-key="R"] .layer-swatch { cursor: default; }
+
+.layer-name {
   font-family: 'DM Sans', sans-serif;
-  font-weight: 600;
-  font-size: 7.5pt;
-  fill: var(--accent);
-  letter-spacing: 0.02em;
-}
-
-.legend {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 0.2in 0.4in;
-  font-size: 10pt;
-  color: var(--ink-soft);
-  margin-top: 0.2in;
-  border-top: 1px solid var(--rule);
-  padding-top: 0.2in;
-}
-
-.legend strong {
+  font-size: 11pt;
+  font-weight: 500;
   color: var(--ink);
-  font-weight: 600;
+  flex-grow: 1;
+  letter-spacing: 0.01em;
 }
 
-.legend p { margin: 0; }
+.layer-quality {
+  display: inline-flex;
+  border: 1px solid var(--rule);
+  border-radius: 5px;
+  overflow: hidden;
+}
 
-.swatch {
+.layer-q-btn {
+  background: var(--paper);
+  border: none;
+  border-right: 1px solid var(--rule);
+  padding: 3px 9px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 9.5pt;
+  font-weight: 500;
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.layer-q-btn:last-child { border-right: none; }
+.layer-q-btn.active { background: var(--ink); color: var(--paper); }
+
+.layers-hint {
+  margin-top: 8px;
+  font-size: 8.5pt;
+  color: var(--ink-faint);
+  text-align: center;
+  letter-spacing: 0.02em;
+}
+
+.btn {
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 6px 14px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 10pt;
+  font-weight: 500;
+  color: var(--ink-soft);
+  cursor: pointer;
+  letter-spacing: 0.02em;
+  transition: background 120ms, color 120ms, border-color 120ms;
+}
+
+.btn:hover { border-color: var(--ink-soft); color: var(--ink); }
+
+.btn.active {
+  background: var(--ink);
+  color: var(--paper);
+  border-color: var(--ink);
+}
+
+.btn .swatch {
   display: inline-block;
   width: 9px;
   height: 9px;
   border-radius: 50%;
   vertical-align: -1px;
-  margin-right: 4px;
+  margin-right: 5px;
 }
+
+.segmented {
+  display: inline-flex;
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.segmented .btn {
+  border: none;
+  border-right: 1px solid var(--rule);
+  border-radius: 0;
+}
+
+.segmented .btn:last-child { border-right: none; }
+
+.sigma-control {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+  margin-top: 26px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 10.5pt;
+  color: var(--ink-soft);
+}
+
+.sigma-control input[type=range] {
+  width: 260px;
+  accent-color: var(--ink);
+}
+
+.sigma-control .value {
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  min-width: 3em;
+  text-align: left;
+}
+
+.legend {
+  font-size: 10pt;
+  color: var(--ink-soft);
+  margin-top: 26px;
+  border-top: 1px solid var(--rule);
+  padding-top: 16px;
+}
+
+.legend p { margin: 0; }
+.legend strong { color: var(--ink); font-weight: 600; }
 
 </style>
 </head>
 <body>
 
-<h1>The pitch circle <span style="font-style:normal;color:var(--ink-soft);font-size:14pt">— overtones, wrapped at the octave</span></h1>
-<div class="subtitle">log(frequency) mod log(2). One revolution = one octave. Each chord tone draws an inward comb — one tick per partial.</div>
+<h1>The pitch circle <span class="sub">— rotations &amp; stacks</span></h1>
 
-<div class="viz-wrap">
-<svg class="circles" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 720 460" preserveAspectRatio="xMidYMid meet"></svg>
+<div class="wheels">
+  <div class="wheel-pane">
+    <div class="wheel-title">Single voice</div>
+    <svg class="wheel" id="individual" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" preserveAspectRatio="xMidYMid meet"></svg>
+    <div class="controls-row" id="individual-picker">
+      <div class="segmented">
+        <button class="btn active" data-voice="R">R</button>
+        <button class="btn" data-voice="m3">m3</button>
+        <button class="btn" data-voice="M3">M3</button>
+        <button class="btn" data-voice="P5">P5</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="wheel-pane">
+    <div class="wheel-title">Combined</div>
+    <svg class="wheel" id="combined" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" preserveAspectRatio="xMidYMid meet"></svg>
+    <div class="layers-panel" id="layers"></div>
+    <div class="layers-hint">drag to reorder · click row to toggle · click swatch to mute colour</div>
+  </div>
+</div>
+
+<div class="sigma-control">
+  <label for="sigma-input">σ (Gaussian width)</label>
+  <input type="range" id="sigma-input" min="2" max="15" step="0.5" value="5">
+  <span class="value" id="sigma-value">5.0°</span>
 </div>
 
 <div class="legend">
-<p><strong>Reading the circle.</strong> Each tick is one partial of one chord tone. Tick <em>length</em> and <em>opacity</em> shrink with partial number (lower = louder = more perceptually salient). The warm radial bands behind the ticks mark every angle where two or more voices share a partial; their <em>width</em> grows with the strength of the lock-in (lower partial numbers = louder coincidence = wider band). Bands tagged <strong>×3</strong> are triple coincidences where all three voices line up.</p>
-<p><strong>The colours.</strong> <span class="swatch" style="background:var(--voice-root)"></span>root, <span class="swatch" style="background:var(--voice-third)"></span>third (M3 or m3), <span class="swatch" style="background:var(--voice-fifth)"></span>fifth. The 12 grey reference ticks around the outside mark equal-tempered semitone positions, labelled with interval names.</p>
-<p><strong>What to notice in major (4 : 5 : 6).</strong> All three colours converge densely near R, M3, P5, and M7. The lowest shared partial between root and fifth is the 3rd (loud); between root and third is the 5th. Everything locks in early.</p>
-<p><strong>What to notice in minor (10 : 12 : 15).</strong> The m3's fundamental (~94°) is isolated — no other voice's low partials reach it. The first triple-coincidence (all three colours at one angle) is up at the 6th partial of the m3, vs. the 3rd for major. The chord still locks, but higher up where the partials are quieter.</p>
+<p>One revolution = one octave. Each voice's first 16 partials are smeared by a Gaussian of width σ (perceptually meaningful — comparable to the pitch JND / Sethares-style consonance kernels). Single-voice wheel: switching R / m3 / M3 / P5 just <strong>rotates the same comb</strong> to the new fundamental. Combined wheel: enabled voices' Gaussians <strong>stack additively</strong> while keeping their colours, so tall multi-colour peaks mark the strongest sensory coincidences.</p>
 </div>
 
 <script>
 const SVG_NS = 'http://www.w3.org/2000/svg';
-const svg = document.querySelector('svg.circles');
 
 const PARTIALS = 16;
-
-// 12 reference labels at ET semitone positions
+const N_SAMPLES = 540;
 const ET_LABELS = ['R','m2','M2','m3','M3','P4','A4','P5','m6','M6','m7','M7'];
 
-const chords = [
-  {
-    name: 'Major triad',
-    ratio: '4 : 5 : 6',
-    cx: 200, cy: 220,
-    voices: [
-      { label: 'R',   ratio: 1,   color: 'var(--voice-root)' },
-      { label: 'M3',  ratio: 5/4, color: 'var(--voice-third)' },
-      { label: 'P5',  ratio: 3/2, color: 'var(--voice-fifth)' }
-    ]
-  },
-  {
-    name: 'Minor triad',
-    ratio: '10 : 12 : 15',
-    cx: 520, cy: 220,
-    voices: [
-      { label: 'R',   ratio: 1,   color: 'var(--voice-root)' },
-      { label: 'm3',  ratio: 6/5, color: 'var(--voice-third)' },
-      { label: 'P5',  ratio: 3/2, color: 'var(--voice-fifth)' }
-    ]
-  }
-];
+const VOICES = {
+  R:  { key: 'R',  ratio: 1,   color: 'var(--voice-root)',  label: 'R'  },
+  m3: { key: 'm3', ratio: 6/5, color: 'var(--voice-third)', label: 'm3' },
+  M3: { key: 'M3', ratio: 5/4, color: 'var(--voice-third)', label: 'M3' },
+  P5: { key: 'P5', ratio: 3/2, color: 'var(--voice-fifth)', label: 'P5' }
+};
 
-const R_OUTER = 145;   // outer octave ring
-const R_INNER_BASE = 30; // shortest tick reaches inward to ~115
-const TICK_MAX = 60;   // longest tick (fundamental) reaches inward by this much
+const CX = 200, CY = 200;
+const R_OUTER = 155;
+const DENSITY_SCALE = 36;
+const MAX_INWARD = R_OUTER - 18;
+
+let sigmaDeg = 5;
+let individualVoice = 'R';
+let individualAngle = 0;
+
+// Combined wheel state — layer model
+let stackOrder = ['P5', 'third', 'R'];           // index 0 = top of stack (drawn last, innermost)
+let visibility = { R: true, third: true, P5: true };
+let colourState = { R: 'own', third: 'own', P5: 'own' };  // 'own' or 'neutral'
+let thirdQuality = 'M3';                          // 'm3' or 'M3'
+let thirdAngle = Math.log2(5/4) * 2 * Math.PI;
+let dragSrcKey = null;
 
 function el(tag, attrs, text) {
   const e = document.createElementNS(SVG_NS, tag);
@@ -228,134 +365,307 @@ function el(tag, attrs, text) {
   return e;
 }
 
-// position on circle: angle in radians, distance from centre = r
-function pt(cx, cy, angleRad, r) {
-  return [cx + Math.sin(angleRad) * r, cy - Math.cos(angleRad) * r];
+function pt(cx, cy, a, r) {
+  return [cx + Math.sin(a) * r, cy - Math.cos(a) * r];
 }
 
-function angleOf(ratio) {
-  // log2(ratio) mod 1, scaled to radians [0, 2π).  0 = R at top.
-  const frac = ((Math.log2(ratio) % 1) + 1) % 1;
-  return frac * Math.PI * 2;
+function rPartials() {
+  const arr = [];
+  for (let n = 1; n <= PARTIALS; n++) {
+    const ang = ((Math.log2(n) % 1) + 1) % 1 * 2 * Math.PI;
+    arr.push({ angle: ang, amp: 1 / Math.sqrt(n) });
+  }
+  return arr;
+}
+const R_PARTIALS = rPartials();
+
+function angDiff(a, b) {
+  let d = a - b;
+  d = ((d + Math.PI) % (2 * Math.PI) + 2 * Math.PI) % (2 * Math.PI) - Math.PI;
+  return d;
 }
 
-function findCoincidences(voices, maxPartials) {
-  // group partials by (rounded) angular position; keep the lowest partial number per voice at each angle.
-  const groups = new Map();
-  voices.forEach((v, vIdx) => {
-    for (let n = 1; n <= maxPartials; n++) {
-      const r = v.ratio * n;
-      const frac = ((Math.log2(r) % 1) + 1) % 1;
-      const key = frac.toFixed(5);
-      if (!groups.has(key)) groups.set(key, { angle: frac * Math.PI * 2, voices: {} });
-      const g = groups.get(key);
-      if (!(vIdx in g.voices) || g.voices[vIdx] > n) g.voices[vIdx] = n;
+function densityArray(partials, sigmaRad, rotationRad) {
+  const out = new Float32Array(N_SAMPLES);
+  const twoSig2 = 2 * sigmaRad * sigmaRad;
+  for (let i = 0; i < N_SAMPLES; i++) {
+    const theta = i / N_SAMPLES * 2 * Math.PI;
+    let sum = 0;
+    for (const p of partials) {
+      const target = p.angle + rotationRad;
+      const d = angDiff(theta, target);
+      sum += p.amp * Math.exp(-d * d / twoSig2);
     }
-  });
-  return [...groups.values()]
-    .filter(g => Object.keys(g.voices).length >= 2)
-    .map(g => {
-      const partials = Object.values(g.voices);
-      const weight = partials.reduce((s, n) => s + 1 / Math.sqrt(n), 0);
-      return { angle: g.angle, weight, count: partials.length };
-    })
-    .filter(c => c.weight > 0.5);
+    out[i] = sum;
+  }
+  return out;
 }
 
-function drawChord(chord) {
-  const g = el('g', {});
+function buildStackedPath(baseArr, topArr) {
+  let d = '';
+  for (let i = 0; i <= N_SAMPLES; i++) {
+    const idx = i % N_SAMPLES;
+    const theta = idx / N_SAMPLES * 2 * Math.PI;
+    const depth = Math.min(MAX_INWARD, DENSITY_SCALE * baseArr[idx]);
+    const r = R_OUTER - 1 - depth;
+    const [x, y] = pt(CX, CY, theta, r);
+    d += (i === 0 ? 'M ' : 'L ') + x.toFixed(2) + ' ' + y.toFixed(2) + ' ';
+  }
+  for (let i = N_SAMPLES; i >= 0; i--) {
+    const idx = i % N_SAMPLES;
+    const theta = idx / N_SAMPLES * 2 * Math.PI;
+    const depth = Math.min(MAX_INWARD, DENSITY_SCALE * topArr[idx]);
+    const r = R_OUTER - 1 - depth;
+    const [x, y] = pt(CX, CY, theta, r);
+    d += 'L ' + x.toFixed(2) + ' ' + y.toFixed(2) + ' ';
+  }
+  d += 'Z';
+  return d;
+}
 
-  // chord name + ratio
-  g.appendChild(el('text', {
-    class: 'chord-name',
-    x: chord.cx,
-    y: chord.cy - R_OUTER - 32,
-    'text-anchor': 'middle'
-  }, chord.name));
-  g.appendChild(el('text', {
-    class: 'chord-ratio',
-    x: chord.cx,
-    y: chord.cy - R_OUTER - 16,
-    'text-anchor': 'middle'
-  }, chord.ratio));
-
-  // octave ring
-  g.appendChild(el('circle', {
-    class: 'octave-ring',
-    cx: chord.cx, cy: chord.cy, r: R_OUTER
-  }));
-
-  // 12 ET reference ticks + labels (outside the ring)
+function drawRingAndLabels(svg) {
+  const g = el('g', { class: 'ring-group' });
+  g.appendChild(el('circle', { class: 'octave-ring', cx: CX, cy: CY, r: R_OUTER }));
   for (let i = 0; i < 12; i++) {
     const a = (i / 12) * Math.PI * 2;
-    const [x1, y1] = pt(chord.cx, chord.cy, a, R_OUTER);
-    const [x2, y2] = pt(chord.cx, chord.cy, a, R_OUTER + 5);
+    const [x1, y1] = pt(CX, CY, a, R_OUTER);
+    const [x2, y2] = pt(CX, CY, a, R_OUTER + 6);
     g.appendChild(el('line', { class: 'grid-tick', x1, y1, x2, y2 }));
-    const [lx, ly] = pt(chord.cx, chord.cy, a, R_OUTER + 17);
+    const [lx, ly] = pt(CX, CY, a, R_OUTER + 18);
     g.appendChild(el('text', {
-      class: 'grid-label',
-      x: lx, y: ly + 2.5,
-      'text-anchor': 'middle'
+      class: 'grid-label', x: lx, y: ly + 3, 'text-anchor': 'middle'
     }, ET_LABELS[i]));
   }
-
-  // coincidence wedges (behind everything) — soft radial highlights at angles where 2+ voices share a partial.
-  const coincs = findCoincidences(chord.voices, PARTIALS);
-  coincs.forEach(c => {
-    const width = Math.min(14, Math.max(3.5, c.weight * 5));
-    const [x1, y1] = pt(chord.cx, chord.cy, c.angle, 14);
-    const [x2, y2] = pt(chord.cx, chord.cy, c.angle, R_OUTER + 4);
-    g.appendChild(el('line', {
-      class: 'coincidence-wedge',
-      x1, y1, x2, y2,
-      'stroke-width': width
-    }));
-    if (c.count === 3) {
-      const [lx, ly] = pt(chord.cx, chord.cy, c.angle, 28);
-      g.appendChild(el('text', {
-        class: 'coincidence-count',
-        x: lx, y: ly + 3,
-        'text-anchor': 'middle'
-      }, '×3'));
-    }
-  });
-
-  // partial ticks per voice
-  chord.voices.forEach(voice => {
-    for (let n = 1; n <= PARTIALS; n++) {
-      const r = voice.ratio * n;
-      const a = angleOf(r);
-      const len = TICK_MAX / Math.sqrt(n);
-      const opacity = Math.max(0.18, 1 / Math.sqrt(n));
-      const width = Math.max(1.1, 2.4 / Math.pow(n, 0.25));
-      const [x1, y1] = pt(chord.cx, chord.cy, a, R_OUTER - 2);
-      const [x2, y2] = pt(chord.cx, chord.cy, a, R_OUTER - 2 - len);
-      g.appendChild(el('line', {
-        class: 'partial-tick',
-        x1, y1, x2, y2,
-        stroke: voice.color,
-        'stroke-width': width,
-        opacity
-      }));
-    }
-  });
-
-  // label each voice's fundamental at the tip of its longest tick
-  chord.voices.forEach(voice => {
-    const a = angleOf(voice.ratio);
-    const [lx, ly] = pt(chord.cx, chord.cy, a, R_OUTER - 2 - TICK_MAX - 9);
-    g.appendChild(el('text', {
-      class: 'voice-label',
-      x: lx, y: ly + 3,
-      'text-anchor': 'middle',
-      fill: voice.color
-    }, voice.label));
-  });
-
-  return g;
+  svg.appendChild(g);
 }
 
-chords.forEach(c => svg.appendChild(drawChord(c)));
+function renderIndividual() {
+  const svg = document.getElementById('individual');
+  svg.innerHTML = '';
+  drawRingAndLabels(svg);
+
+  const sigmaRad = sigmaDeg * Math.PI / 180;
+  const density = densityArray(R_PARTIALS, sigmaRad, individualAngle);
+  const zero = new Float32Array(N_SAMPLES);
+
+  const voice = VOICES[individualVoice];
+  svg.appendChild(el('path', {
+    class: 'density-fill',
+    d: buildStackedPath(zero, density),
+    fill: voice.color,
+    opacity: 0.55
+  }));
+}
+
+function rotationForKey(key) {
+  if (key === 'third') return thirdAngle;
+  return Math.log2(VOICES[key].ratio) * 2 * Math.PI;
+}
+
+function fillForKey(key) {
+  if (colourState[key] === 'neutral') return 'var(--voice-root)';
+  if (key === 'third') return VOICES[thirdQuality].color;
+  return VOICES[key].color;
+}
+
+function ownColorForKey(key) {
+  if (key === 'third') return VOICES[thirdQuality].color;
+  return VOICES[key].color;
+}
+
+function displayNameForKey(key) {
+  return key === 'third' ? 'third' : key;
+}
+
+function renderCombined() {
+  const svg = document.getElementById('combined');
+  svg.innerHTML = '';
+  drawRingAndLabels(svg);
+
+  // stackOrder[0] = top of stack = drawn LAST. Reverse for draw order (bottom → top).
+  const drawOrder = [...stackOrder].reverse().filter(k => visibility[k]);
+  if (drawOrder.length === 0) return;
+
+  const sigmaRad = sigmaDeg * Math.PI / 180;
+  const densities = drawOrder.map(k =>
+    densityArray(R_PARTIALS, sigmaRad, rotationForKey(k))
+  );
+
+  const base = new Float32Array(N_SAMPLES);
+  drawOrder.forEach((key, idx) => {
+    const top = new Float32Array(N_SAMPLES);
+    const baseSnap = new Float32Array(N_SAMPLES);
+    for (let i = 0; i < N_SAMPLES; i++) {
+      baseSnap[i] = base[i];
+      top[i] = base[i] + densities[idx][i];
+      base[i] = top[i];
+    }
+    svg.appendChild(el('path', {
+      class: 'density-fill',
+      d: buildStackedPath(baseSnap, top),
+      fill: fillForKey(key),
+      opacity: 0.5
+    }));
+  });
+}
+
+function renderLayers() {
+  const container = document.getElementById('layers');
+  container.innerHTML = stackOrder.map(key => {
+    const off = !visibility[key];
+    const neutral = colourState[key] === 'neutral';
+    const ownColor = ownColorForKey(key);
+    const name = displayNameForKey(key);
+    const quality = key === 'third'
+      ? `<span class="layer-quality" data-role="quality">
+           <button type="button" class="layer-q-btn ${thirdQuality === 'm3' ? 'active' : ''}" data-q="m3">m3</button>
+           <button type="button" class="layer-q-btn ${thirdQuality === 'M3' ? 'active' : ''}" data-q="M3">M3</button>
+         </span>`
+      : '';
+    return `
+      <div class="layer-row ${off ? 'off' : ''}" data-key="${key}" draggable="true">
+        <span class="layer-handle" aria-hidden="true">⋮⋮</span>
+        <span class="layer-swatch ${neutral ? 'neutral' : ''}" style="--swatch-color: ${ownColor}" data-role="swatch"></span>
+        <span class="layer-name">${name}</span>
+        ${quality}
+      </div>
+    `;
+  }).join('');
+  attachLayerHandlers();
+}
+
+function attachLayerHandlers() {
+  document.querySelectorAll('.layer-row').forEach(row => {
+    const key = row.dataset.key;
+
+    row.addEventListener('click', e => {
+      if (e.target.closest('[data-role="swatch"], [data-role="quality"], .layer-handle')) return;
+      visibility[key] = !visibility[key];
+      renderLayers();
+      renderCombined();
+    });
+
+    const swatch = row.querySelector('[data-role="swatch"]');
+    if (key !== 'R') {
+      swatch.addEventListener('click', e => {
+        e.stopPropagation();
+        colourState[key] = colourState[key] === 'own' ? 'neutral' : 'own';
+        renderLayers();
+        renderCombined();
+      });
+    } else {
+      swatch.addEventListener('click', e => e.stopPropagation());
+    }
+
+    row.querySelectorAll('.layer-q-btn').forEach(btn => {
+      btn.addEventListener('click', e => {
+        e.stopPropagation();
+        const newQ = btn.dataset.q;
+        if (newQ !== thirdQuality) setThirdQuality(newQ);
+      });
+    });
+
+    row.addEventListener('dragstart', e => {
+      dragSrcKey = key;
+      row.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', key);
+    });
+    row.addEventListener('dragover', e => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      if (dragSrcKey && key !== dragSrcKey) row.classList.add('drag-over');
+    });
+    row.addEventListener('dragleave', () => row.classList.remove('drag-over'));
+    row.addEventListener('drop', e => {
+      e.preventDefault();
+      row.classList.remove('drag-over');
+      if (dragSrcKey && key !== dragSrcKey) {
+        const fromIdx = stackOrder.indexOf(dragSrcKey);
+        const toIdx = stackOrder.indexOf(key);
+        const [moved] = stackOrder.splice(fromIdx, 1);
+        stackOrder.splice(toIdx, 0, moved);
+        renderLayers();
+        renderCombined();
+      }
+    });
+    row.addEventListener('dragend', () => {
+      row.classList.remove('dragging');
+      document.querySelectorAll('.layer-row.drag-over').forEach(r => r.classList.remove('drag-over'));
+      dragSrcKey = null;
+    });
+  });
+}
+
+let currentAnim = null;
+function setIndividualVoice(newKey) {
+  if (newKey === individualVoice && currentAnim === null) return;
+  const fromAngle = individualAngle;
+  const targetAbs = Math.log2(VOICES[newKey].ratio) * 2 * Math.PI;
+  let delta = angDiff(targetAbs, ((fromAngle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI));
+  const toAngle = fromAngle + delta;
+
+  individualVoice = newKey;
+  document.querySelectorAll('#individual-picker .btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.voice === newKey);
+  });
+
+  if (currentAnim) cancelAnimationFrame(currentAnim);
+  const start = performance.now();
+  const duration = 550;
+  function frame(now) {
+    const t = Math.min(1, (now - start) / duration);
+    const eased = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    individualAngle = fromAngle + (toAngle - fromAngle) * eased;
+    renderIndividual();
+    if (t < 1) currentAnim = requestAnimationFrame(frame);
+    else currentAnim = null;
+  }
+  currentAnim = requestAnimationFrame(frame);
+}
+
+document.querySelectorAll('#individual-picker .btn').forEach(btn => {
+  btn.addEventListener('click', () => setIndividualVoice(btn.dataset.voice));
+});
+
+let thirdAnim = null;
+function setThirdQuality(newQ) {
+  if (newQ === thirdQuality) return;
+  const fromAngle = thirdAngle;
+  thirdQuality = newQ;
+  renderLayers();
+
+  const targetAbs = Math.log2(VOICES[newQ].ratio) * 2 * Math.PI;
+  const normalised = ((fromAngle % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI);
+  const delta = angDiff(targetAbs, normalised);
+  const toAngle = fromAngle + delta;
+
+  if (thirdAnim) cancelAnimationFrame(thirdAnim);
+  const start = performance.now();
+  const duration = 450;
+  function frame(now) {
+    const t = Math.min(1, (now - start) / duration);
+    const eased = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    thirdAngle = fromAngle + (toAngle - fromAngle) * eased;
+    renderCombined();
+    if (t < 1) thirdAnim = requestAnimationFrame(frame);
+    else thirdAnim = null;
+  }
+  thirdAnim = requestAnimationFrame(frame);
+}
+
+const sigmaInput = document.getElementById('sigma-input');
+const sigmaValueEl = document.getElementById('sigma-value');
+sigmaInput.addEventListener('input', () => {
+  sigmaDeg = parseFloat(sigmaInput.value);
+  sigmaValueEl.textContent = sigmaDeg.toFixed(1) + '°';
+  renderIndividual();
+  renderCombined();
+});
+
+renderIndividual();
+renderLayers();
+renderCombined();
 </script>
 
 </body>
