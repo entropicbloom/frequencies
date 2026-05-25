@@ -119,6 +119,67 @@ svg.wheel .density-fill {
   justify-content: center;
 }
 
+.metrics-panel {
+  margin: 32px auto 0;
+  max-width: 480px;
+  padding: 20px 32px 22px;
+  border: 1px solid var(--rule);
+  border-radius: 10px;
+  background: var(--paper);
+}
+
+.metrics-title {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-style: italic;
+  font-size: 13pt;
+  text-align: center;
+  color: var(--ink-soft);
+  margin-bottom: 14px;
+  letter-spacing: 0.01em;
+}
+
+.metrics-formula {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-style: italic;
+  font-size: 11.5pt;
+  color: var(--ink-faint);
+}
+
+.metrics-formula sub {
+  font-size: 8pt;
+  vertical-align: -0.2em;
+}
+
+.metric-line {
+  display: grid;
+  grid-template-columns: 1fr 14px 1fr;
+  gap: 12px;
+  align-items: baseline;
+  padding: 4px 0;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 10.5pt;
+}
+
+.metric-line .pair {
+  text-align: right;
+  color: var(--ink-soft);
+}
+
+.metric-line .equals {
+  color: var(--ink-faint);
+  text-align: center;
+}
+
+.metric-line .value {
+  text-align: left;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-style: italic;
+  font-size: 14pt;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+}
+
+
 .layers-panel {
   margin-top: 12px;
   width: 100%;
@@ -317,6 +378,30 @@ svg.wheel .density-fill {
   </div>
 </div>
 
+<div class="metrics-panel">
+  <div class="metrics-title">Pairwise overlap &nbsp;<span class="metrics-formula">∫ f<sub>a</sub> · f<sub>b</sub> dθ</span></div>
+  <div class="metric-line">
+    <span class="pair">R&nbsp; ↔&nbsp; third</span>
+    <span class="equals">=</span>
+    <span class="value" id="pair-R-third">—</span>
+  </div>
+  <div class="metric-line">
+    <span class="pair">R&nbsp; ↔&nbsp; P5</span>
+    <span class="equals">=</span>
+    <span class="value" id="pair-R-P5">—</span>
+  </div>
+  <div class="metric-line">
+    <span class="pair">third&nbsp; ↔&nbsp; P5</span>
+    <span class="equals">=</span>
+    <span class="value" id="pair-third-P5">—</span>
+  </div>
+  <div class="metric-line">
+    <span class="pair">third&nbsp; ↔&nbsp; (R + P5)</span>
+    <span class="equals">=</span>
+    <span class="value" id="colour-fit-value">—</span>
+  </div>
+</div>
+
 <div class="sigma-control">
   <label for="sigma-input">σ (Gaussian width)</label>
   <input type="range" id="sigma-input" min="2" max="15" step="0.5" value="5">
@@ -482,31 +567,67 @@ function renderCombined() {
   svg.innerHTML = '';
   drawRingAndLabels(svg);
 
+  const sigmaRad = sigmaDeg * Math.PI / 180;
+  const densitiesByKey = {};
+  ['R', 'third', 'P5'].forEach(k => {
+    if (visibility[k]) {
+      densitiesByKey[k] = densityArray(R_PARTIALS, sigmaRad, rotationForKey(k));
+    }
+  });
+
   // stackOrder[0] = top of stack = drawn LAST. Reverse for draw order (bottom → top).
   const drawOrder = [...stackOrder].reverse().filter(k => visibility[k]);
-  if (drawOrder.length === 0) return;
 
-  const sigmaRad = sigmaDeg * Math.PI / 180;
-  const densities = drawOrder.map(k =>
-    densityArray(R_PARTIALS, sigmaRad, rotationForKey(k))
-  );
+  if (drawOrder.length > 0) {
+    const base = new Float32Array(N_SAMPLES);
+    drawOrder.forEach(key => {
+      const density = densitiesByKey[key];
+      const top = new Float32Array(N_SAMPLES);
+      const baseSnap = new Float32Array(N_SAMPLES);
+      for (let i = 0; i < N_SAMPLES; i++) {
+        baseSnap[i] = base[i];
+        top[i] = base[i] + density[i];
+        base[i] = top[i];
+      }
+      svg.appendChild(el('path', {
+        class: 'density-fill',
+        d: buildStackedPath(baseSnap, top),
+        fill: fillForKey(key),
+        opacity: 0.5
+      }));
+    });
+  }
 
-  const base = new Float32Array(N_SAMPLES);
-  drawOrder.forEach((key, idx) => {
-    const top = new Float32Array(N_SAMPLES);
-    const baseSnap = new Float32Array(N_SAMPLES);
-    for (let i = 0; i < N_SAMPLES; i++) {
-      baseSnap[i] = base[i];
-      top[i] = base[i] + densities[idx][i];
-      base[i] = top[i];
-    }
-    svg.appendChild(el('path', {
-      class: 'density-fill',
-      d: buildStackedPath(baseSnap, top),
-      fill: fillForKey(key),
-      opacity: 0.5
-    }));
-  });
+  updateMetrics(densitiesByKey);
+}
+
+function inner(fa, fb) {
+  if (!fa || !fb) return null;
+  const dTheta = 2 * Math.PI / N_SAMPLES;
+  let s = 0;
+  for (let i = 0; i < N_SAMPLES; i++) s += fa[i] * fb[i];
+  return s * dTheta;
+}
+
+function updateMetrics(densitiesByKey) {
+  const fmt = v => v === null ? '—' : v.toFixed(3);
+  const rThird = inner(densitiesByKey.R, densitiesByKey.third);
+  const rP5 = inner(densitiesByKey.R, densitiesByKey.P5);
+  const thirdP5 = inner(densitiesByKey.third, densitiesByKey.P5);
+
+  document.getElementById('pair-R-third').textContent = fmt(rThird);
+  document.getElementById('pair-R-P5').textContent = fmt(rP5);
+  document.getElementById('pair-third-P5').textContent = fmt(thirdP5);
+
+  // colour fit = R-third + third-P5 (both terms involving the third)
+  const cfHasThird = densitiesByKey.third !== undefined;
+  const cfHasFrame = densitiesByKey.R !== undefined || densitiesByKey.P5 !== undefined;
+  if (!cfHasThird || !cfHasFrame) {
+    document.getElementById('colour-fit-value').textContent = '—';
+  } else {
+    const cf = (rThird ?? 0) + (thirdP5 ?? 0);
+    document.getElementById('colour-fit-value').textContent = cf.toFixed(3);
+  }
 }
 
 function renderLayers() {
