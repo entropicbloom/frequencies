@@ -350,6 +350,40 @@ svg.wheel .density-fill {
 .legend p { margin: 0; }
 .legend strong { color: var(--ink); font-weight: 600; }
 
+@media (max-width: 720px) {
+  body {
+    margin: 8px auto;
+    padding: 18px 14px;
+    font-size: 10.5pt;
+  }
+  h1 {
+    font-size: 18pt;
+    margin-bottom: 16px;
+  }
+  h1 .sub {
+    display: block;
+    font-size: 12pt;
+    margin-left: 0;
+    margin-top: 2px;
+  }
+  .wheels {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+  .metrics-panel {
+    padding: 16px 18px 18px;
+    margin-top: 24px;
+  }
+  .sigma-control {
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 20px;
+  }
+  .sigma-control input[type=range] {
+    width: min(260px, 100%);
+  }
+}
+
 </style>
 </head>
 <body>
@@ -378,6 +412,12 @@ svg.wheel .density-fill {
   </div>
 </div>
 
+<div class="sigma-control">
+  <label for="sigma-input">σ (Gaussian width)</label>
+  <input type="range" id="sigma-input" min="2" max="15" step="0.5" value="5">
+  <span class="value" id="sigma-value">5.0°</span>
+</div>
+
 <div class="metrics-panel">
   <div class="metrics-title">Pairwise overlap &nbsp;<span class="metrics-formula">∫ f<sub>a</sub> · f<sub>b</sub> dθ</span></div>
   <div class="metric-line">
@@ -400,16 +440,6 @@ svg.wheel .density-fill {
     <span class="equals">=</span>
     <span class="value" id="colour-fit-value">·</span>
   </div>
-</div>
-
-<div class="sigma-control">
-  <label for="sigma-input">σ (Gaussian width)</label>
-  <input type="range" id="sigma-input" min="2" max="15" step="0.5" value="5">
-  <span class="value" id="sigma-value">5.0°</span>
-</div>
-
-<div class="legend">
-<p>One revolution = one octave. Each voice's first 16 partials are smeared by a Gaussian of width σ (perceptually meaningful, comparable to the pitch JND / Sethares-style consonance kernels). Single-voice wheel: switching R / m3 / M3 / P5 just <strong>rotates the same comb</strong> to the new fundamental. Combined wheel: enabled voices' Gaussians <strong>stack additively</strong> while keeping their colours, so tall multi-colour peaks mark the strongest sensory coincidences.</p>
 </div>
 
 <script>
