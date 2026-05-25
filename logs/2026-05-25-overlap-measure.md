@@ -10,11 +10,11 @@ Each voice $v$ contributes a density function on the octave circle:
 $$f_v(\theta) = \sum_{n=1}^{N} \frac{1}{\sqrt{n}} \cdot \exp\!\left( -\frac{d(\theta,\,\theta_{v,n})^2}{2\sigma^2} \right)$$
 
 where:
-- $\theta_{v,n} = \big(\log_2(r_v \cdot n) \bmod 1\big) \cdot 2\pi$ — angle of voice $v$'s $n$-th partial
-- $r_v$ — voice's fundamental ratio (e.g. $1$, $5/4$, $3/2$)
-- $\sigma$ — Gaussian width (the slider)
-- $d(\cdot, \cdot)$ — shortest angular distance on the circle
-- $\frac{1}{\sqrt{n}}$ — perceptual amplitude proxy
+- $\theta_{v,n} = \big(\log_2(r_v \cdot n) \bmod 1\big) \cdot 2\pi$: angle of voice $v$'s $n$-th partial
+- $r_v$: voice's fundamental ratio (e.g. $1$, $5/4$, $3/2$)
+- $\sigma$: Gaussian width (the slider)
+- $d(\cdot, \cdot)$: shortest angular distance on the circle
+- $\frac{1}{\sqrt{n}}$: perceptual amplitude proxy
 
 This is exactly what's rendered on the combined wheel.
 
@@ -41,11 +41,11 @@ Expanding the square:
 
 $$S = \underbrace{\sum_v \int f_v^2 \, d\theta}_{\text{intrinsic per-voice}} \;+\; \underbrace{2 \sum_{i<j} \int f_i \, f_j \, d\theta}_{2C}$$
 
-So $S = (\text{constant in }\sigma) + 2C$ — equivalent to $C$ up to an additive constant. Cheap to compute: one pass over exactly the data that's already being rendered.
+So $S = (\text{constant in }\sigma) + 2C$, equivalent to $C$ up to an additive constant. Cheap to compute: one pass over exactly the data that's already being rendered.
 
 ## Cousin 2: Plomp-Levelt roughness
 
-The *opposite* signal — measures **dissonance** (beating between near-but-not-coincident partials) rather than consonance.
+The *opposite* signal: it measures **dissonance** (beating between near-but-not-coincident partials) rather than consonance.
 
 For each cross-voice partial pair $(p_a, p_b)$, a roughness kernel $g(\Delta f, f_{\min})$ peaks when their frequency difference is roughly 25% of a critical band, decaying to zero at unison and at large separations.
 
@@ -65,7 +65,7 @@ The symmetric sum
 
 $$C = \int f_R\, f_3\, d\theta \;+\; \int f_R\, f_5\, d\theta \;+\; \int f_3\, f_5\, d\theta$$
 
-treats all three voices on equal footing. But for the question we actually care about — "how does the third lock into an R+P5 frame, and does m3 differ from M3?" — the $\int f_R\, f_5$ term is **identical** for both major and minor (same R, same P5).
+treats all three voices on equal footing. But for the question we actually care about ("how does the third lock into an R+P5 frame, and does m3 differ from M3?"), the $\int f_R\, f_5$ term is **identical** for both major and minor (same R, same P5).
 
 So the major-vs-minor difference reduces to:
 
@@ -83,6 +83,6 @@ This isolates "how well does the third lock into the perfect-fifth skeleton."
 |---|---|---|
 | Full pairwise | $C = \sum_{i<j} \int f_i f_j\, d\theta$ | Overall consonance, any voice selection |
 | Skeleton consonance | $C_{\text{skel}} = \int f_R\, f_{P5}\, d\theta$ | How locked-in the R + P5 frame is on its own |
-| Colour fit | $C_{\text{colour}} = \int f_{\text{third}} \cdot (f_R + f_{P5})\, d\theta$ | How the third fits the frame — m3 vs M3 contrast lives entirely here |
+| Colour fit | $C_{\text{colour}} = \int f_{\text{third}} \cdot (f_R + f_{P5})\, d\theta$ | How the third fits the frame; m3 vs M3 contrast lives entirely here |
 
 For triad analysis, the skeleton + colour-fit pair tells a much clearer story than the single full-pairwise number, because it factors out the constant background and exposes the part that the chord quality actually controls.

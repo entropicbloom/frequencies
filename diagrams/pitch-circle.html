@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Pitch circle — rotations &amp; stacks</title>
+<title>Pitch circle: rotations &amp; stacks</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -354,7 +354,7 @@ svg.wheel .density-fill {
 </head>
 <body>
 
-<h1>The pitch circle <span class="sub">— rotations &amp; stacks</span></h1>
+<h1>The pitch circle <span class="sub">rotations &amp; stacks</span></h1>
 
 <div class="wheels">
   <div class="wheel-pane">
@@ -383,22 +383,22 @@ svg.wheel .density-fill {
   <div class="metric-line">
     <span class="pair">R&nbsp; ↔&nbsp; third</span>
     <span class="equals">=</span>
-    <span class="value" id="pair-R-third">—</span>
+    <span class="value" id="pair-R-third">·</span>
   </div>
   <div class="metric-line">
     <span class="pair">R&nbsp; ↔&nbsp; P5</span>
     <span class="equals">=</span>
-    <span class="value" id="pair-R-P5">—</span>
+    <span class="value" id="pair-R-P5">·</span>
   </div>
   <div class="metric-line">
     <span class="pair">third&nbsp; ↔&nbsp; P5</span>
     <span class="equals">=</span>
-    <span class="value" id="pair-third-P5">—</span>
+    <span class="value" id="pair-third-P5">·</span>
   </div>
   <div class="metric-line">
     <span class="pair">third&nbsp; ↔&nbsp; (R + P5)</span>
     <span class="equals">=</span>
-    <span class="value" id="colour-fit-value">—</span>
+    <span class="value" id="colour-fit-value">·</span>
   </div>
 </div>
 
@@ -409,7 +409,7 @@ svg.wheel .density-fill {
 </div>
 
 <div class="legend">
-<p>One revolution = one octave. Each voice's first 16 partials are smeared by a Gaussian of width σ (perceptually meaningful — comparable to the pitch JND / Sethares-style consonance kernels). Single-voice wheel: switching R / m3 / M3 / P5 just <strong>rotates the same comb</strong> to the new fundamental. Combined wheel: enabled voices' Gaussians <strong>stack additively</strong> while keeping their colours, so tall multi-colour peaks mark the strongest sensory coincidences.</p>
+<p>One revolution = one octave. Each voice's first 16 partials are smeared by a Gaussian of width σ (perceptually meaningful, comparable to the pitch JND / Sethares-style consonance kernels). Single-voice wheel: switching R / m3 / M3 / P5 just <strong>rotates the same comb</strong> to the new fundamental. Combined wheel: enabled voices' Gaussians <strong>stack additively</strong> while keeping their colours, so tall multi-colour peaks mark the strongest sensory coincidences.</p>
 </div>
 
 <script>
@@ -435,7 +435,7 @@ let sigmaDeg = 5;
 let individualVoice = 'R';
 let individualAngle = 0;
 
-// Combined wheel state — layer model
+// Combined wheel state: layer model
 let stackOrder = ['P5', 'third', 'R'];           // index 0 = top of stack (drawn last, innermost)
 let visibility = { R: true, third: true, P5: true };
 let colourState = { R: 'own', third: 'own', P5: 'own' };  // 'own' or 'neutral'
@@ -610,7 +610,7 @@ function inner(fa, fb) {
 }
 
 function updateMetrics(densitiesByKey) {
-  const fmt = v => v === null ? '—' : v.toFixed(3);
+  const fmt = v => v === null ? '·' : v.toFixed(3);
   const rThird = inner(densitiesByKey.R, densitiesByKey.third);
   const rP5 = inner(densitiesByKey.R, densitiesByKey.P5);
   const thirdP5 = inner(densitiesByKey.third, densitiesByKey.P5);
@@ -623,7 +623,7 @@ function updateMetrics(densitiesByKey) {
   const cfHasThird = densitiesByKey.third !== undefined;
   const cfHasFrame = densitiesByKey.R !== undefined || densitiesByKey.P5 !== undefined;
   if (!cfHasThird || !cfHasFrame) {
-    document.getElementById('colour-fit-value').textContent = '—';
+    document.getElementById('colour-fit-value').textContent = '·';
   } else {
     const cf = (rThird ?? 0) + (thirdP5 ?? 0);
     document.getElementById('colour-fit-value').textContent = cf.toFixed(3);

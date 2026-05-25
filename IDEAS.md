@@ -1,4 +1,4 @@
-# Ideas — future directions
+# Ideas: future directions
 
 Running list of things to explore. Add freely; prune when done or abandoned.
 
@@ -20,14 +20,14 @@ Overlay 12-TET partial positions as faint grey ticks behind the just-intonation 
 
 - The ~14-cent angular gap at the M3 (between the JI 5/4 and the ET 400-cent third) would visually *be* the syntonic comma.
 - Other commas show up too: P5 (Pythagorean vs ET ~2¢), m3 (~16¢), m7, etc.
-- Teaches *why* equal temperament is a compromise — the diagram answers a question before you ask it.
+- Teaches *why* equal temperament is a compromise: the diagram answers a question before you ask it.
 
 ### 3. Scalar dissonance read-out
 
 Integrate Σ (stack_height)² around the ring → one number per chord configuration.
 
 - Compare major / minor / dom7 / m7♭5 / cluster quantitatively.
-- Visual and number always synced — toggle a voice and watch both update.
+- Visual and number always synced: toggle a voice and watch both update.
 - Could also expose Σ stack_height (linear) for a "total energy" reading vs Σ height² (concentration).
 - Bonus: plot the number as a function of σ to see how "dissonance" depends on perceptual sharpness.
 
