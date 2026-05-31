@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recovering the root</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; }
+
+:root {
+  --paper: #fdfcf8;
+  --ink: #1a1a1a;
+  --ink-soft: #555;
+  --ink-faint: #a8a59c;
+  --rule: #d4d0c8;
+  --accent: #8a5a00;
+  --win: #8a5a00;
+  --bar: #c9c2b2;
+  --bar-soft: #e2ddd0;
+  --on: #2d5d7a;
+}
+
+html { background: #e8e4d8; }
+
+body {
+  font-family: 'DM Sans', system-ui, sans-serif;
+  background: var(--paper);
+  color: var(--ink);
+  margin: 24px auto;
+  padding: 32px 40px;
+  font-size: 11pt;
+  line-height: 1.45;
+  max-width: 1100px;
+  box-shadow: 0 4px 32px rgba(0,0,0,0.08);
+}
+
+h1 {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-style: italic;
+  font-weight: 500;
+  font-size: 22pt;
+  margin: 0 0 6px;
+  letter-spacing: 0.01em;
+}
+
+h1 .sub {
+  font-style: normal;
+  color: var(--ink-soft);
+  font-size: 14pt;
+  margin-left: 4px;
+}
+
+.intro {
+  color: var(--ink-soft);
+  max-width: 760px;
+  margin: 0 0 26px;
+  font-size: 10.5pt;
+}
+
+.intro .eq {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-style: italic;
+  font-size: 12pt;
+  color: var(--ink);
+  white-space: nowrap;
+}
+.intro .eq sub { font-size: 8pt; vertical-align: -0.2em; }
+
+.stage {
+  display: grid;
+  grid-template-columns: 0.85fr 1.15fr;
+  gap: 36px;
+  align-items: start;
+}
+
+.pane-title {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-style: italic;
+  font-size: 15pt;
+  color: var(--ink);
+  margin: 0 0 10px;
+  letter-spacing: 0.01em;
+}
+
+.pane-title .hint {
+  font-style: normal;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 8.5pt;
+  color: var(--ink-faint);
+  letter-spacing: 0.02em;
+  margin-left: 6px;
+}
+
+/* ---- input pitch circle ---- */
+.input-pane { display: flex; flex-direction: column; align-items: center; }
+
+svg.circle {
+  width: 100%;
+  max-width: 360px;
+  height: auto;
+  display: block;
+}
+
+svg.circle .octave-ring {
+  fill: none;
+  stroke: var(--ink-faint);
+  stroke-width: 1;
+}
+
+svg.circle .pc-dot {
+  fill: var(--paper);
+  stroke: var(--rule);
+  stroke-width: 1.5;
+  cursor: pointer;
+  transition: fill 140ms, stroke 140ms;
+}
+svg.circle .pc-dot.on {
+  fill: var(--on);
+  stroke: var(--on);
+}
+svg.circle .pc-dot.win-ring {
+  stroke: var(--win);
+  stroke-width: 3;
+}
+
+svg.circle .pc-label {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 9.5pt;
+  fill: var(--ink-soft);
+  letter-spacing: 0.02em;
+  pointer-events: none;
+}
+svg.circle .pc-label.on { fill: var(--ink); font-weight: 600; }
+
+.presets {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 14px;
+}
+
+.btn {
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 5px 12px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 9.5pt;
+  font-weight: 500;
+  color: var(--ink-soft);
+  cursor: pointer;
+  letter-spacing: 0.02em;
+  transition: background 120ms, color 120ms, border-color 120ms;
+}
+.btn:hover { border-color: var(--ink-soft); color: var(--ink); }
+.btn.ghost { color: var(--ink-faint); }
+
+/* ---- probability bars ---- */
+.bars {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 5px;
+  align-items: end;
+  height: 230px;
+  padding-top: 22px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.bar-col {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  height: 100%;
+  position: relative;
+}
+
+.bar-fill {
+  width: 100%;
+  max-width: 26px;
+  background: var(--bar);
+  border-radius: 3px 3px 0 0;
+  transition: height 220ms cubic-bezier(.4,0,.2,1), background 180ms;
+  min-height: 1px;
+}
+.bar-col.win .bar-fill { background: var(--win); }
+
+.bar-pct {
+  position: absolute;
+  top: -18px;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-style: italic;
+  font-size: 10.5pt;
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-faint);
+  white-space: nowrap;
+  transition: color 180ms;
+}
+.bar-col.win .bar-pct { color: var(--win); }
+.bar-col.faint .bar-pct { opacity: 0; }
+
+.bar-name {
+  margin-top: 6px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 9pt;
+  color: var(--ink-soft);
+  letter-spacing: 0.01em;
+}
+.bar-col.win .bar-name { color: var(--win); font-weight: 600; }
+
+.verdict {
+  margin-top: 16px;
+  font-size: 10.5pt;
+  color: var(--ink-soft);
+  min-height: 1.4em;
+}
+.verdict strong {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-style: italic;
+  font-weight: 600;
+  font-size: 13pt;
+  color: var(--win);
+}
+.verdict .score {
+  font-variant-numeric: tabular-nums;
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-style: italic;
+  color: var(--ink);
+}
+
+/* ---- harmonic-fit ladder ---- */
+.fit {
+  margin-top: 30px;
+  border-top: 1px solid var(--rule);
+  padding-top: 22px;
+}
+.fit-title {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-style: italic;
+  font-size: 15pt;
+  color: var(--ink);
+  margin: 0 0 4px;
+  letter-spacing: 0.01em;
+}
+.fit-title .root { color: var(--win); }
+.fit-sub {
+  font-size: 9.5pt;
+  color: var(--ink-faint);
+  margin: 0 0 8px;
+}
+svg.ladder {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+svg.ladder .axis { stroke: var(--rule); stroke-width: 1; }
+svg.ladder .stem { stroke: var(--bar); stroke-width: 2; }
+svg.ladder .stem.lit { stroke: var(--win); }
+svg.ladder .head { fill: var(--bar); }
+svg.ladder .head.lit { fill: var(--win); }
+svg.ladder .head.absent { fill: var(--paper); stroke: #c98; stroke-width: 1.5; stroke-dasharray: 2 2; }
+svg.ladder .p-num {
+  font-family: 'DM Sans', sans-serif; font-size: 7.5pt; fill: var(--ink-faint);
+}
+svg.ladder .p-note {
+  font-family: 'DM Sans', sans-serif; font-size: 9pt; fill: var(--ink-soft);
+}
+svg.ladder .p-note.lit { fill: var(--win); font-weight: 600; }
+svg.ladder .miss-label {
+  font-family: 'DM Sans', sans-serif; font-size: 8.5pt; fill: #b5793f;
+}
+
+/* ---- template + controls ---- */
+.lower {
+  margin-top: 32px;
+  display: grid;
+  grid-template-columns: 1.3fr 1fr;
+  gap: 36px;
+  align-items: start;
+  border-top: 1px solid var(--rule);
+  padding-top: 24px;
+}
+
+.tmpl-bars {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: 4px;
+  align-items: end;
+  height: 120px;
+}
+.tmpl-col {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  height: 100%;
+}
+.tmpl-fill {
+  width: 100%;
+  max-width: 22px;
+  border-radius: 2px 2px 0 0;
+  background: var(--bar-soft);
+  min-height: 1px;
+  transition: height 200ms;
+}
+.tmpl-fill.key { background: var(--accent); opacity: 0.85; }
+.tmpl-name {
+  margin-top: 5px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 8pt;
+  color: var(--ink-faint);
+  letter-spacing: 0.01em;
+}
+
+.slider-block {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.slider-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 10pt;
+  color: var(--ink-soft);
+}
+.slider-row label { min-width: 92px; }
+.slider-row input[type=range] { flex: 1; accent-color: var(--ink); }
+.slider-row .value {
+  font-variant-numeric: tabular-nums;
+  color: var(--ink);
+  min-width: 2.6em;
+  text-align: right;
+}
+
+.legend {
+  font-size: 9.5pt;
+  color: var(--ink-soft);
+  margin-top: 30px;
+  border-top: 1px solid var(--rule);
+  padding-top: 16px;
+}
+.legend p { margin: 0 0 8px; max-width: 820px; }
+.legend strong { color: var(--ink); font-weight: 600; }
+
+@media (max-width: 760px) {
+  body { margin: 8px auto; padding: 18px 14px; font-size: 10.5pt; }
+  h1 { font-size: 18pt; }
+  h1 .sub { display: block; font-size: 12pt; margin-left: 0; }
+  .stage, .lower { grid-template-columns: 1fr; gap: 26px; }
+  .bars { height: 190px; }
+}
+</style>
+</head>
+<body>
+
+<h1>Recovering the root <span class="sub">a harmonic-series prior</span></h1>
+
+<p class="intro">
+Pick a set of tones. Each candidate root carries a fixed template of support weights read straight off the
+harmonic series, unison loudest, then the fifth, the major third, the minor seventh, the major second, trailing off.
+The guess is just <span class="eq">softmax<sub>r</sub>( x · t<sub>r</sub> )</span>: one linear layer, no learning.
+</p>
+
+<div class="stage">
+  <div class="input-pane">
+    <div class="pane-title">Input <span class="hint">click notes to toggle</span></div>
+    <svg class="circle" id="circle" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" preserveAspectRatio="xMidYMid meet"></svg>
+    <div class="presets" id="presets"></div>
+  </div>
+
+  <div class="output-pane">
+    <div class="pane-title">P(root | tones)</div>
+    <div class="bars" id="bars"></div>
+    <div class="verdict" id="verdict"></div>
+  </div>
+</div>
+
+<div class="fit" id="fit">
+  <div class="fit-title">How the chord sits on <span class="root" id="fit-root">C</span>'s harmonic series</div>
+  <div class="fit-sub" id="fit-sub">Filled stems are partials whose pitch class is in the chord. Dashed = a chord tone with no nearby partial.</div>
+  <svg class="ladder" id="ladder" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 150" preserveAspectRatio="xMidYMid meet"></svg>
+</div>
+
+<div class="lower">
+  <div>
+    <div class="pane-title" style="font-size:13pt;">Root-support template <span class="hint">t<sub>r</sub>, intervals above the root</span></div>
+    <div class="tmpl-bars" id="tmpl"></div>
+  </div>
+  <div class="slider-block">
+    <div class="slider-row">
+      <label for="partials-input">harmonics</label>
+      <input type="range" id="partials-input" min="2" max="20" step="1" value="16">
+      <span class="value" id="partials-value">16</span>
+    </div>
+    <div class="slider-row">
+      <label for="temp-input">softmax temp τ</label>
+      <input type="range" id="temp-input" min="0.1" max="2" step="0.05" value="0.5">
+      <span class="value" id="temp-value">0.50</span>
+    </div>
+    <div class="slider-row" style="color:var(--ink-faint); font-size:9pt;">
+      <span>Lower τ sharpens the winner; more harmonics fills in higher intervals.</span>
+    </div>
+  </div>
+</div>
+
+<div class="legend">
+  <p>
+    <strong>The template.</strong> Treating a root as a fundamental, its partials land (rounded to equal temperament)
+    on the unison, the fifth, the major third, the minor seventh, the major second, and so on. Stacking partial
+    amplitudes (1/n) by pitch class gives the weight bars above, a fixed prior on which notes a root "wants" to generate.
+  </p>
+  <p>
+    <strong>The minor third is missing.</strong> No low partial lands on it, so it earns almost no support.
+    A minor triad's root therefore scores barely above its relative major, the model is genuinely unsure who the root is,
+    which is the same ambiguity that gives minor its softer, less-anchored footing.
+  </p>
+</div>
+
+<script>
+const SVG_NS = 'http://www.w3.org/2000/svg';
+const NOTES = ['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];
+const IVL = ['R','m2','M2','m3','M3','P4','TT','P5','m6','M6','m7','M7'];
+
+const PRESETS = [
+  { name: 'C major', pcs: [0,4,7] },
+  { name: 'A minor', pcs: [9,0,4] },
+  { name: 'C7', pcs: [0,4,7,10] },
+  { name: 'Cmaj7', pcs: [0,4,7,11] },
+  { name: 'Dm7', pcs: [2,5,9,0] },
+  { name: 'C dim', pcs: [0,3,6] },
+  { name: 'C aug', pcs: [0,4,8] },
+  { name: 'Csus4', pcs: [0,5,7] },
+  { name: 'C + E', pcs: [0,4] },
+  { name: 'C + G', pcs: [0,7] }
+];
+
+let input = new Array(12).fill(0);
+input[0] = input[4] = input[7] = 1;   // start on C major
+
+let nPartials = 16;
+let temp = 0.5;
+
+// --- geometry ---
+const CX = 160, CY = 160, R_RING = 118, R_DOT = R_RING, R_LABEL = R_RING + 22;
+function pt(a, r) { return [CX + Math.sin(a) * r, CY - Math.cos(a) * r]; }
+function el(tag, attrs, text) {
+  const e = document.createElementNS(SVG_NS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (text != null) e.textContent = text;
+  return e;
+}
+
+// --- template from the harmonic series ---
+// partial n -> nearest ET interval, amplitude 1/n, summed per pitch class.
+function buildTemplate(N) {
+  const t = new Array(12).fill(0);
+  for (let n = 1; n <= N; n++) {
+    const semis = Math.round(12 * Math.log2(n));
+    const k = ((semis % 12) + 12) % 12;
+    t[k] += 1 / n;
+  }
+  return t;
+}
+let template = buildTemplate(nPartials);
+
+function scores() {
+  // score_r = sum_p input[p] * template[(p - r) mod 12]
+  const s = new Array(12).fill(0);
+  for (let r = 0; r < 12; r++) {
+    let acc = 0;
+    for (let p = 0; p < 12; p++) {
+      if (!input[p]) continue;
+      acc += template[((p - r) % 12 + 12) % 12];
+    }
+    s[r] = acc;
+  }
+  return s;
+}
+
+function softmax(s, tau) {
+  const m = Math.max(...s);
+  const ex = s.map(v => Math.exp((v - m) / tau));
+  const z = ex.reduce((a, b) => a + b, 0) || 1;
+  return ex.map(v => v / z);
+}
+
+// --- input circle ---
+function drawCircle() {
+  const svg = document.getElementById('circle');
+  svg.innerHTML = '';
+  svg.appendChild(el('circle', { class: 'octave-ring', cx: CX, cy: CY, r: R_RING }));
+
+  const s = scores();
+  const anyOn = input.some(v => v);
+  const winner = anyOn ? s.indexOf(Math.max(...s)) : -1;
+
+  for (let i = 0; i < 12; i++) {
+    const a = (i / 12) * 2 * Math.PI;
+    const [x, y] = pt(a, R_DOT);
+    const on = !!input[i];
+    const cls = 'pc-dot' + (on ? ' on' : '') + (i === winner ? ' win-ring' : '');
+    const dot = el('circle', { class: cls, cx: x, cy: y, r: 13 });
+    dot.addEventListener('click', () => { input[i] = on ? 0 : 1; render(); });
+    svg.appendChild(dot);
+
+    const [lx, ly] = pt(a, R_LABEL);
+    svg.appendChild(el('text', {
+      class: 'pc-label' + (on ? ' on' : ''), x: lx, y: ly + 3.5, 'text-anchor': 'middle'
+    }, NOTES[i]));
+  }
+}
+
+// --- probability bars ---
+function drawBars() {
+  const wrap = document.getElementById('bars');
+  const s = scores();
+  const anyOn = input.some(v => v);
+  const p = anyOn ? softmax(s, temp) : new Array(12).fill(0);
+  const maxP = Math.max(...p, 1e-9);
+  const winner = anyOn ? s.indexOf(Math.max(...s)) : -1;
+
+  wrap.innerHTML = NOTES.map((nm, i) => {
+    const h = anyOn ? Math.max(1, (p[i] / maxP) * 100) : 1;
+    const pct = (p[i] * 100);
+    const faint = pct < 0.5 ? ' faint' : '';
+    return `<div class="bar-col${i === winner ? ' win' : ''}${faint}">
+      <span class="bar-pct">${pct.toFixed(0)}%</span>
+      <div class="bar-fill" style="height:${h}%"></div>
+      <span class="bar-name">${nm}</span>
+    </div>`;
+  }).join('');
+
+  const v = document.getElementById('verdict');
+  if (!anyOn) { v.innerHTML = 'No tones selected.'; return; }
+  const sorted = [...p].map((val, i) => ({ i, val })).sort((a, b) => b.val - a.val);
+  const top = sorted[0], second = sorted[1];
+  const margin = (top.val - second.val) * 100;
+  const conf = margin < 8 ? 'a close call with ' + NOTES[second.i] : 'comfortably ahead';
+  v.innerHTML = `Most likely root: <strong>${NOTES[winner]}</strong> &nbsp;`
+    + `<span class="score">${(top.val * 100).toFixed(0)}%</span> &nbsp;&middot;&nbsp; ${conf}.`;
+}
+
+// --- template bars ---
+function drawTemplate() {
+  const wrap = document.getElementById('tmpl');
+  const maxW = Math.max(...template);
+  // intervals the input lands on, relative to the current winner, get highlighted
+  const s = scores();
+  const anyOn = input.some(v => v);
+  const winner = anyOn ? s.indexOf(Math.max(...s)) : -1;
+  const litIvls = new Set();
+  if (winner >= 0) {
+    for (let p = 0; p < 12; p++) if (input[p]) litIvls.add(((p - winner) % 12 + 12) % 12);
+  }
+  wrap.innerHTML = IVL.map((nm, k) => {
+    const h = Math.max(1, (template[k] / maxW) * 100);
+    const key = litIvls.has(k) ? ' key' : '';
+    return `<div class="tmpl-col">
+      <div class="tmpl-fill${key}" style="height:${h}%"></div>
+      <span class="tmpl-name">${nm}</span>
+    </div>`;
+  }).join('');
+}
+
+// --- harmonic-fit ladder ---
+function drawLadder() {
+  const svg = document.getElementById('ladder');
+  const fit = document.getElementById('fit');
+  svg.innerHTML = '';
+
+  const anyOn = input.some(v => v);
+  if (!anyOn) { fit.style.opacity = 0.4; document.getElementById('fit-root').textContent = '—'; return; }
+  fit.style.opacity = 1;
+
+  const s = scores();
+  const root = s.indexOf(Math.max(...s));
+  document.getElementById('fit-root').textContent = NOTES[root];
+
+  const L = 44, Rm = 24, BASE = 112, TOP = 26;
+  const W = 900 - L - Rm;
+  const maxLog = Math.log2(nPartials);
+  const xFor = lg => L + (lg / maxLog) * W;
+  const hFor = amp => Math.max(3, amp * (BASE - TOP));   // n=1 -> full height
+
+  svg.appendChild(el('line', { class: 'axis', x1: L - 6, y1: BASE, x2: 900 - Rm + 4, y2: BASE }));
+
+  // which ET intervals (above root) are covered by some partial up to nPartials
+  const covered = new Set();
+  for (let n = 1; n <= nPartials; n++) covered.add(((Math.round(12 * Math.log2(n)) % 12) + 12) % 12);
+
+  // partials
+  for (let n = 1; n <= nPartials; n++) {
+    const lg = Math.log2(n);
+    const x = xFor(lg);
+    const pc = (root + Math.round(12 * Math.log2(n))) % 12;
+    const lit = !!input[pc];
+    const y = BASE - hFor(1 / n);
+    svg.appendChild(el('line', { class: 'stem' + (lit ? ' lit' : ''), x1: x, y1: BASE, x2: x, y2: y }));
+    svg.appendChild(el('circle', { class: 'head' + (lit ? ' lit' : ''), cx: x, cy: y, r: lit ? 4.5 : 3 }));
+    svg.appendChild(el('text', { class: 'p-num', x: x, y: BASE + 13, 'text-anchor': 'middle' }, n));
+    if (lit || n <= 5) {
+      svg.appendChild(el('text', {
+        class: 'p-note' + (lit ? ' lit' : ''), x: x, y: y - 8, 'text-anchor': 'middle'
+      }, NOTES[pc]));
+    }
+  }
+
+  // chord tones with no supporting partial -> dashed markers where they "want" to sit
+  for (let pc = 0; pc < 12; pc++) {
+    if (!input[pc]) continue;
+    const ivl = ((pc - root) % 12 + 12) % 12;
+    if (covered.has(ivl)) continue;
+    const x = xFor(ivl / 12);          // position within the first octave
+    svg.appendChild(el('line', {
+      class: 'stem', x1: x, y1: BASE, x2: x, y2: BASE - 24,
+      'stroke-dasharray': '2 2', stroke: '#c98'
+    }));
+    svg.appendChild(el('circle', { class: 'head absent', cx: x, cy: BASE - 24, r: 4.5 }));
+    svg.appendChild(el('text', { class: 'miss-label', x: x, y: BASE - 34, 'text-anchor': 'middle' }, NOTES[pc]));
+  }
+}
+
+function render() {
+  drawCircle();
+  drawBars();
+  drawLadder();
+  drawTemplate();
+}
+
+// --- presets ---
+const presetWrap = document.getElementById('presets');
+PRESETS.forEach(ps => {
+  const b = document.createElement('button');
+  b.className = 'btn';
+  b.textContent = ps.name;
+  b.addEventListener('click', () => {
+    input = new Array(12).fill(0);
+    ps.pcs.forEach(pc => input[pc] = 1);
+    render();
+  });
+  presetWrap.appendChild(b);
+});
+const clr = document.createElement('button');
+clr.className = 'btn ghost';
+clr.textContent = 'clear';
+clr.addEventListener('click', () => { input = new Array(12).fill(0); render(); });
+presetWrap.appendChild(clr);
+
+// --- sliders ---
+const partialsInput = document.getElementById('partials-input');
+const partialsValue = document.getElementById('partials-value');
+partialsInput.addEventListener('input', () => {
+  nPartials = parseInt(partialsInput.value, 10);
+  partialsValue.textContent = nPartials;
+  template = buildTemplate(nPartials);
+  render();
+});
+
+const tempInput = document.getElementById('temp-input');
+const tempValue = document.getElementById('temp-value');
+tempInput.addEventListener('input', () => {
+  temp = parseFloat(tempInput.value);
+  tempValue.textContent = temp.toFixed(2);
+  drawBars();
+});
+
+render();
+</script>
+
+</body>
+</html>
